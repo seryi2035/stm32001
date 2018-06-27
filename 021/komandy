@@ -13,7 +13,9 @@ git config --list
 cd
 git init
 git clone https://github.com/seryi2035/stm32001.git
-
+git fetch origin
+git pull
+#zapara
 
 git push -u origin master
 #залить на гитхаб
