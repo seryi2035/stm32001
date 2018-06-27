@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DEBUG="Debug/*-debug/mbed.*/mbed"
+RELEASE="Release/*-release/mbed.*/mbed"
+
+if [ -f $DEBUG ]; then
+    echo DEBUG
+    arm-none-eabi-size $DEBUG
+fi
+
+
+if [ -f $RELEASE ]; then
+    echo RELEASE
+    arm-none-eabi-size $RELEASE
+fi
