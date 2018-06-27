@@ -1,0 +1,13 @@
+git push -u origin master
+#залить на гитхаб
+
+git remote
+отобразить гитхам и удаленные
+
+git remote add origin https://github.com/seryi2035/stm32001.git
+
+
+git add -A
+привязать все файлы к индексу
+
+
