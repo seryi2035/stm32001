@@ -1,5 +1,7 @@
-
-
+seryi@debianserv-01:~/kodim/git/stm32001/stm32001$
+seryi@hpdebian-01:~/003/git/stm32001$ 
+cd ~/kodim/git/stm32001/stm32001/
+cd ~/003/git/stm32001
 
 
 apt-get install git-core
