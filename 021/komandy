@@ -1,3 +1,20 @@
+
+
+
+
+apt-get install git-core
+apt-get install git-gui
+cd /home/seryi/003/git/stm32001
+git config --global user.name "seryi2035"
+git config --global user.name "seryidebianserv"
+git config --global user.email seryi2035@mail.ru
+git config --global user.email seryi2035@yandex.ru
+git config --list
+cd
+git init
+git clone https://github.com/seryi2035/stm32001.git
+
+
 git push -u origin master
 #залить на гитхаб
 
@@ -31,5 +48,11 @@ git push -u origin master
 
 git remote add origin https://github.com/seryi2035/stm32001.git
 git push -u origin master
+
+
+######################
+In Terminal, navigate to the location of your Git repository.
+touch .gitignore
+
 
 
