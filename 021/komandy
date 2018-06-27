@@ -2,12 +2,17 @@ git push -u origin master
 #залить на гитхаб
 
 git remote
-отобразить гитхам и удаленные
+#отобразить гитхам и удаленные
 
 git remote add origin https://github.com/seryi2035/stm32001.git
 
 
 git add -A
-привязать все файлы к индексу
+#привязать все файлы к индексу
 
+git commit -m 'dobavlen fail komandy'
 
+#Your branch is ahead of 'origin/master' by 1 commit.
+#  (use "git push" to publish your local commits
+
+git push
