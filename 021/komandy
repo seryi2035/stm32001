@@ -16,3 +16,20 @@ git commit -m 'dobavlen fail komandy'
 #  (use "git push" to publish your local commits
 
 git push
+#отправить на гитхаб
+git add
+#индексировать вайлы
+git commit -a
+#коммитить с автоматической индексацей
+
+echo "# stm32001" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/seryi2035/stm32001.git
+git push -u origin master
+
+git remote add origin https://github.com/seryi2035/stm32001.git
+git push -u origin master
+
+
