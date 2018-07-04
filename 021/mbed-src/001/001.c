@@ -706,7 +706,7 @@ void vvhex(char vv) {
   ff[0] = get_ab_xFF(b);
   USARTSend(ff);
 }
-
+//ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
 void usart3_init(void) {
   //USART 3 and GPIO B 10 11 ON
   RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3 | RCC_APB2Periph_GPIOB, ENABLE);
@@ -1122,27 +1122,28 @@ void TX_66(UART_DATA *MODBUS)
     }
 
 }
-void oprosite (void) {
-  u8 comm[2];
+void oprosite(void) {
+  /*u8 comm[2];
   comm[0] = (u8) '\xcc';
   comm[1] = (u8) '\x44';
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(800);
+  delay_ms(8000);
   comm[1] = (u8) '\x4E';
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(100);
+  delay_ms(1000);
   //USARTSend("oprosheno\n\r");
-  /*ПОПРОБОВАТЬ ПОЗЖЕ
-  //u8 comm[2];
-  //comm[0] = 0xcc;
-  //comm[1] = 0x44;
-  OW_Send(OW_SEND_RESET, 0xcc44, 2, NULL, 0, OW_NO_READ);
+*/
+  //ПОПРОБОВАТЬ ПОЗЖЕ
+  u8 comm[2];
+  comm[0] = 0xcc;
+  comm[1] = 0x44;
+  OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
   delay_ms(1000);
   comm[1] = 0x4e;
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
   delay_ms(1000);
   USARTSend("oprosheno\n\r");
-  */
+
 }
 void net_tx3(UART_DATA *uart)
 {
@@ -1185,7 +1186,7 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIM_TimeBaseInit(TIM2, &TIM_TimBaseStructure);
   TIM_Cmd(TIM2, ENABLE);*/
-  void TIM2_init(void);
+  //и так есть основной void TIM2_init(void);
 
   //Initialise GPIO DHT11
   GPIO_InitStructure.GPIO_Pin = dev->pin;
@@ -1219,16 +1220,18 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //Put LOW for at least 18ms
   GPIO_ResetBits(dev->port, dev->pin);
 
+  delay_ms(18);
   //wait 18ms
-  TIM2->CNT = 0;
-  while((TIM2->CNT) <= 18000);
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 18000);
 
   //Put HIGH for 20-40us
   GPIO_SetBits(dev->port, dev->pin);
 
+  delay_us(40);
   //wait 40us
-  TIM2->CNT = 0;
-  while((TIM2->CNT) <= 40);
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 40);
   //End start condition
 
   //io();

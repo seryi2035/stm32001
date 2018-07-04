@@ -24,7 +24,8 @@ int main(void)
   TIM2_init();
   usart1_init(); //A9 A10 //RS232
   usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
-  OW_Init(); //usart2 B10 B11
+  OW_Init(); //usart2 А2 А3         B10 B11
+  DHT11_init(&dev001, GPIOA, GPIO_Pin_6);
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
@@ -46,18 +47,18 @@ int main(void)
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 5;
-      RTC_DateTime.RTC_Month = 3;
+      RTC_DateTime.RTC_Date = 4;
+      RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 11;
+      RTC_DateTime.RTC_Hours = 21;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
     }
-  DHT11_init(&dev001, GPIOA, GPIO_Pin_6);
+
 
   while (1) {
       if(uart3.rxgap==1)
@@ -130,8 +131,8 @@ int main(void)
               schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
             }
           if (strncmp(RX_BUF, "5\r", 4) == 0) {
-              void oprosite (void);
-              USARTSend("oprosheno\n\r");
+              oprosite ();
+              //USARTSend("oprosheno\n\r");
             }
           if(strncmp(RX_BUF, "2\r", 4) == 0) {
               delay_ms(100);
@@ -153,16 +154,22 @@ int main(void)
               USARTSend(buffer);
             }
           if (strncmp(RX_BUF, "6\r", 4) == 0) {
-              int res003 = DHT11_read(&dev001);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
+              int res003;
+              if ((res003 = DHT11_read(&dev001)) == DHT11_SUCCESS) {
+                  sprintf(cifry, "%d\r\n", res003);
+                  USARTSend(cifry);
+                  delay_ms(100);
+                  sprintf(cifry, "%d\r\n", dev001.temparature);
+                  USARTSend(cifry);
+                  delay_ms(100);
+                  sprintf(cifry, "%d\r\n", dev001.humidity);
+                  USARTSend(cifry);
+                  delay_ms(100);
+                } else {
+                  delay_ms(10000);
+                  USARTSend("косяк\n\r");
+                }
+
             }
           clear_RXBuffer();
         }
