@@ -71,6 +71,8 @@ git config credential.helper store
 > git config --unset credential.helper
 #########################################
 JiedMefbajcevJ1изменен
-################################
-
+###############################
+git config --global credential.helper cache
+git config --global credential.helper 'cache --timeout=3600'
+# Set the cache to timeout after 1 hour (setting is in seconds)
 
