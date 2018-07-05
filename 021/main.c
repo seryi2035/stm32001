@@ -25,6 +25,10 @@ int main(void)
   usart1_init(); //A9 A10 //RS232
   usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
   OW_Init(); //usart2 А2 А3         B10 B11
+  dev001.port = GPIOA;
+  dev001.pin = GPIO_Pin_6;
+  dev001.humidity = 0;
+  dev001.temparature = 0;
   DHT11_init(&dev001, GPIOA, GPIO_Pin_6);
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
@@ -57,9 +61,10 @@ int main(void)
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
+
     }
 
-
+  USARTSend("\n\rREADY!!!\n\r");
   while (1) {
       if(uart3.rxgap==1)
         {
@@ -74,8 +79,8 @@ int main(void)
         }*/
       //delay_ms(500);
       //USARTSend("\n\r485 READYedscsdvsvesvsevsddsvsd\n\r");
-     // USARTSend("\r\n485 READYcmdskmvkdmvklsdmvkldsmvkdsmv\r\n");
-     // delay_ms(500);
+      // USARTSend("\r\n485 READYcmdskmvkdmvklsdmvkldsmvkdsmv\r\n");
+      // delay_ms(500);
       //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
       //USART1_IRQHandler();
       if (RX_FLAG_END_LINE == 1) {
@@ -96,7 +101,7 @@ int main(void)
               delay_ms(100);
               GPIO_SetBits(GPIOC, GPIO_Pin_13); //OFF
             }
-          if (strncmp(RX_BUF, "T\r", 4) == 0 || strncmp(RX_BUF, "t\r", 4) == 0) {
+          if (strncmp(RX_BUF, "T\r", 1) == 0 || strncmp(RX_BUF, "t\r", 4) == 0) {
               RTC_Counter = RTC_GetCounter();
               sprintf(buffer, "\r\n\r\nCOUNTER: %d\r\n", (int)RTC_Counter);
               USARTSend(buffer);
@@ -116,16 +121,16 @@ int main(void)
               //while (RTC_Counter == RTC_GetCounter()) {}
 
             }
-           if (strncmp(RX_BUF, "SCAN\r", 4) == 0) {
-               for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF08[i] = (u8) RX_BUF[i];
-               OW_Scan(RX_BUF08, 1);
-               for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF[i] = (char) RX_BUF08[i];
-               //char cifry[10];
-               sendaddrow();
-             }
+          if (strncmp(RX_BUF, "SCAN\r", 4) == 0) {
+              for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF08[i] = (u8) RX_BUF[i];
+              OW_Scan(RX_BUF08, 1);
+              for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF[i] = (char) RX_BUF08[i];
+              //char cifry[10];
+              sendaddrow();
+            }
           if (strncmp(RX_BUF, "0\r", 4) == 0) {
-
-              schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+              schitatTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+              //schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
             }
           if (strncmp(RX_BUF, "1\r", 4) == 0) {
               schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
@@ -136,7 +141,8 @@ int main(void)
             }
           if(strncmp(RX_BUF, "2\r", 4) == 0) {
               delay_ms(100);
-              schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+              schitatTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+              //schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
               delay_ms(100);
               schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
               delay_ms(100);
@@ -154,21 +160,18 @@ int main(void)
               USARTSend(buffer);
             }
           if (strncmp(RX_BUF, "6\r", 4) == 0) {
-              int res003;
-              if ((res003 = DHT11_read(&dev001)) == DHT11_SUCCESS) {
-                  sprintf(cifry, "%d\r\n", res003);
-                  USARTSend(cifry);
-                  delay_ms(100);
-                  sprintf(cifry, "%d\r\n", dev001.temparature);
-                  USARTSend(cifry);
-                  delay_ms(100);
-                  sprintf(cifry, "%d\r\n", dev001.humidity);
-                  USARTSend(cifry);
-                  delay_ms(100);
-                } else {
-                  delay_ms(10000);
-                  USARTSend("косяк\n\r");
-                }
+              int res003 = DHT11_read(&dev001);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", res003);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
+
 
             }
           clear_RXBuffer();
