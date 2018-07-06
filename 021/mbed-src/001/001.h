@@ -60,7 +60,7 @@ void schitatTemp(char* imya);
 void vvhex(char vv);
 void usart3_init(void);
 void USART3_IRQHandler(void);
-void USART3Send(const unsigned char *pucBuffer);
+void USART3Send(char *pucBuffer);
 void sendaddrow (void);
 
 #define USARTSend USART1Send

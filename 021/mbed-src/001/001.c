@@ -814,7 +814,7 @@ void USART3_IRQHandler(void)
         }
     }
 }
-void USART3Send(const unsigned char *pucBuffer)
+void USART3Send(char *pucBuffer)
 //for RS 485;
 {
   delay_ms(2);
@@ -827,6 +827,10 @@ void USART3Send(const unsigned char *pucBuffer)
   delay_ms(2);
   u16 a;
   while (*pucBuffer) {
+      /*USART_SendData(USART3,(uint16_t) *pucBuffer++);
+      while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
+        {
+        }*/
       a = ((uint16_t) *pucBuffer++);
       USART_SendData(USART3,a);
       /*while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
@@ -1559,6 +1563,8 @@ int DHT11_read004(struct DHT11_Dev* dev) {
 
   //Generate START condition
   //o
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
   GPIO_InitStructure.GPIO_Pin = dev->pin;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -1576,16 +1582,16 @@ int DHT11_read004(struct DHT11_Dev* dev) {
   //dev->port->MODER |= GPIO_MODER_MODER6_0;
 
   //Put LOW for at least 18ms
-  GPIO_ResetBits(dev->port, dev->pin);
+  GPIO_ResetBits(GPIOA, GPIO_Pin_8);
 
   //wait 18ms
   delay_ms(18);
 
   //Put HIGH for 20-40us
-  GPIO_SetBits(dev->port, dev->pin);
+  GPIO_SetBits(GPIOA, GPIO_Pin_8);
 
   //wait 40us
-  delay_us(40);
+  delay_us(35);
   //End start condition
 
   //io();

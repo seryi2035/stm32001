@@ -26,10 +26,10 @@ int main(void)
   usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
   OW_Init(); //usart2 А2 А3         B10 B11
   dev001.port = GPIOA;
-  dev001.pin = GPIO_Pin_6;
+  dev001.pin = GPIO_Pin_8;
   dev001.humidity = 0;
   dev001.temparature = 0;
-  DHT11_init(&dev001, GPIOA, GPIO_Pin_6);
+  DHT11_init(&dev001, GPIOA, GPIO_Pin_8);
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
@@ -51,11 +51,11 @@ int main(void)
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 5;
+      RTC_DateTime.RTC_Date = 6;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 0;
+      RTC_DateTime.RTC_Hours = 18;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -65,13 +65,14 @@ int main(void)
     }
 
   USARTSend("\n\rREADY!!!\n\r");
+  //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
-      if(uart3.rxgap==1)
+      /*if(uart3.rxgap==1)
         {
           MODBUS_SLAVE(&uart3);
           net_tx3(&uart3);
         }
-
+*/
       /*if(uart1.rxgap==1)
         {
           MODBUS_SLAVE(&uart1);
@@ -90,6 +91,9 @@ int main(void)
           USARTSend("\n\rI has received a line:\n\r");
           USARTSend(RX_BUF);
           USARTSend("\n\r");
+          /*USART3Send("\n\rI has received a line:\n\r");
+          USART3Send(RX_BUF);
+          USART3Send("\n\r");*/
 
           if (strncmp(RX_BUF, "ON\r", 3) == 0 || strncmp(RX_BUF, "on\r", 3) == 0) {
               USARTSend("\n\r THIS IS A COMMAND \"ON\"!!!\n\r");
