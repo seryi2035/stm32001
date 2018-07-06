@@ -51,11 +51,11 @@ int main(void)
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 4;
+      RTC_DateTime.RTC_Date = 5;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 21;
+      RTC_DateTime.RTC_Hours = 0;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -171,8 +171,19 @@ int main(void)
               sprintf(cifry, "%d\r\n", dev001.humidity);
               USARTSend(cifry);
               delay_ms(100);
-
-
+            }
+          if (strncmp(RX_BUF, "66\r", 4) == 0) {
+              //int res003 = DHT11_read(&dev001);
+              //delay_ms(100);
+              //sprintf(cifry, "%d\r\n", res003);
+              //USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
             }
           clear_RXBuffer();
         }

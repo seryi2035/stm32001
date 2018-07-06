@@ -1242,17 +1242,27 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //DHT11 ACK
   //should be LOW for at least 80us
   //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM2->CNT = 0;
+  //TIM2->CNT = 0;
+  u16 tiks001 = 0;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }
   while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(TIM2->CNT > 100)
+      if(tiks001 > 100)
         return DHT11_ERROR_TIMEOUT;
     }
 
   //should be HIGH for at least 80us
   //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM2->CNT = 0;
+  //TIM2->CNT = 0;
+  tiks001 = 0;
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }
   while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(TIM2->CNT > 100)
+      if(tiks001 > 100)
         return DHT11_ERROR_TIMEOUT;
     }
 
@@ -1263,23 +1273,26 @@ int DHT11_read(struct DHT11_Dev* dev) {
           //LOW for 50us
           while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
           /*TIM2->CNT = 0;
-                        while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 60)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
+                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                          if(TIM2->CNT > 60)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
 
           //Start counter
-          TIM_SetCounter(TIM2, 0);
+          tiks001 = 0;
 
           //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+              delay_us(1);
+              tiks001 += 1;
+            }
           /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 100)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
+                                          if(TIM2->CNT > 100)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
 
           //Calc amount of time passed
-          temp = TIM_GetCounter(TIM2);
+          temp = tiks001;
 
           //shift 0
           data[j] = data[j] << 1;
@@ -1293,6 +1306,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //verify the Checksum
   if(data[4] != (data[0] + data[2]))
     return DHT11_ERROR_CHECKSUM;
+
 
   //set data
   dev->temparature = data[2];
