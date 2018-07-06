@@ -15,5 +15,8 @@ typedef struct DHT11_Dev {
 
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin);
 int DHT11_read(struct DHT11_Dev* dev);
+int DHT11_read002(struct DHT11_Dev* dev);
+int DHT11_read003(struct DHT11_Dev* dev);
+int DHT11_read004(struct DHT11_Dev* dev);
 
 #endif /* DHT11_H */

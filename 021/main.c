@@ -185,6 +185,45 @@ int main(void)
               USARTSend(cifry);
               delay_ms(100);
             }
+          if (strncmp(RX_BUF, "62\r", 4) == 0) {
+              int res003 = DHT11_read002(&dev001);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", res003);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
+            }
+          if (strncmp(RX_BUF, "63\r", 4) == 0) {
+              int res003 = DHT11_read003(&dev001);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", res003);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
+            }
+          if (strncmp(RX_BUF, "64\r", 4) == 0) {
+              int res003 = DHT11_read004(&dev001);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", res003);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
+            }
           clear_RXBuffer();
         }
 

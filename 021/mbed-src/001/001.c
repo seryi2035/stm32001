@@ -1314,3 +1314,355 @@ int DHT11_read(struct DHT11_Dev* dev) {
 
   return DHT11_SUCCESS;
 }
+
+int DHT11_read002(struct DHT11_Dev* dev) {
+
+  //Initialisation
+  uint8_t i, j, temp;
+  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  //Generate START condition
+  //o
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //dev->port->MODER |= GPIO_MODER_MODER6_0;
+
+  //Put LOW for at least 18ms
+  GPIO_ResetBits(dev->port, dev->pin);
+
+  delay_ms(18);
+  //wait 18ms
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 18000);
+
+  //Put HIGH for 20-40us
+  GPIO_SetBits(dev->port, dev->pin);
+
+  delay_us(40);
+  //wait 40us
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 40);
+  //End start condition
+
+  //io();
+  //Input mode to receive data
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //DHT11 ACK
+  //should be LOW for at least 80us
+  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+  //TIM2->CNT = 0;
+  u16 tiks001 = 0;
+  /*while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }*/
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+      if(tiks001 > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+
+  //should be HIGH for at least 80us
+  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+  //TIM2->CNT = 0;
+  tiks001 = 0;
+  /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }*/
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+      if(tiks001 > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+
+  //Read 40 bits (8*5)
+  for(j = 0; j < 5; ++j) {
+      for(i = 0; i < 8; ++i) {
+
+          //LOW for 50us
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+          /*TIM2->CNT = 0;
+                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                          if(TIM2->CNT > 60)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
+
+          //Start counter
+          tiks001 = 0;
+
+          //HIGH for 26-28us = 0 / 70us = 1
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+              delay_us(1);
+              tiks001 += 1;
+            }
+          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                          if(TIM2->CNT > 100)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
+
+          //Calc amount of time passed
+          temp = tiks001;
+
+          //shift 0
+          data[j] = data[j] << 1;
+
+          //if > 30us it's 1
+          if(temp > 40)
+            data[j] = data[j]+1;
+        }
+    }
+
+  //verify the Checksum
+  if(data[4] != (data[0] + data[2]))
+    return DHT11_ERROR_CHECKSUM;
+
+
+  //set data
+  dev->temparature = data[2];
+  dev->humidity = data[0];
+
+  return DHT11_SUCCESS;
+}
+
+int DHT11_read003(struct DHT11_Dev* dev) {
+
+  //Initialisation
+  uint8_t i, j, temp;
+  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  //Generate START condition
+  //o
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+  /*
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+*/
+  //dev->port->MODER |= GPIO_MODER_MODER6_0;
+
+  //Put LOW for at least 18ms
+  GPIO_ResetBits(dev->port, dev->pin);
+
+  //wait 18ms
+  delay_ms(18);
+
+  //Put HIGH for 20-40us
+  GPIO_SetBits(dev->port, dev->pin);
+
+  //wait 40us
+  delay_us(40);
+  //End start condition
+
+  //io();
+  //Input mode to receive data
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //DHT11 ACK
+  //should be LOW for at least 80us
+  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+  temp = 0;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      temp += 1;
+      if(temp > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+
+  //should be HIGH for at least 80us
+  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+  char cifry[10];
+  sprintf(cifry, "%d\r\n", temp);
+  USARTSend(cifry);
+  temp = 0;
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      temp += 1;
+      if(temp > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+  sprintf(cifry, "%d\r\n", temp);
+  USARTSend(cifry);
+  //Read 40 bits (8*5)
+  for(j = 0; j < 5; ++j) {
+      for(i = 0; i < 8; ++i) {
+
+          //LOW for 50us
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+          /*TIM2->CNT = 0;
+                        while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                if(TIM2->CNT > 60)
+                                        return DHT11_ERROR_TIMEOUT;
+                        }*/
+
+          //Start counter
+
+          temp = 0;
+
+          //HIGH for 26-28us = 0 / 70us = 1
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin))
+            temp += 1;
+          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                if(TIM2->CNT > 100)
+                                        return DHT11_ERROR_TIMEOUT;
+                        }*/
+
+          //Calc amount of time passed
+          //temp = tiks001;
+          sprintf(cifry, "%d\r\n", temp);
+          USARTSend(cifry);
+          //shift 0
+          data[j] = data[j] << 1;
+
+          //if > 30us it's 1
+          if(temp > 40)
+            data[j] = data[j]+1;
+        }
+    }
+
+  //verify the Checksum
+  if(data[4] != (data[0] + data[2]))
+    return DHT11_ERROR_CHECKSUM;
+
+  //set data
+  dev->temparature = data[2];
+  dev->humidity = data[0];
+
+  return DHT11_SUCCESS;
+}
+
+int DHT11_read004(struct DHT11_Dev* dev) {
+
+  //Initialisation
+  uint8_t i, j, temp;
+  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  //Generate START condition
+  //o
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+  /*
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+*/
+  //dev->port->MODER |= GPIO_MODER_MODER6_0;
+
+  //Put LOW for at least 18ms
+  GPIO_ResetBits(dev->port, dev->pin);
+
+  //wait 18ms
+  delay_ms(18);
+
+  //Put HIGH for 20-40us
+  GPIO_SetBits(dev->port, dev->pin);
+
+  //wait 40us
+  delay_us(40);
+  //End start condition
+
+  //io();
+  //Input mode to receive data
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //DHT11 ACK
+  //should be LOW for at least 80us
+  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+  temp = 0;
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      temp += 1;
+      if(temp > 100)
+        break;
+        //return DHT11_ERROR_TIMEOUT;
+    }
+
+  //should be HIGH for at least 80us
+  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+  char cifry[10];
+  sprintf(cifry, "%d\r\n", temp);
+  USARTSend(cifry);
+  temp = 0;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      temp += 1;
+      if(temp > 100)
+        break;
+        //return DHT11_ERROR_TIMEOUT;
+    }
+  sprintf(cifry, "%d\r\n", temp);
+  USARTSend(cifry);
+  //Read 40 bits (8*5)
+  for(j = 0; j < 5; ++j) {
+      for(i = 0; i < 8; ++i) {
+
+          //LOW for 50us
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+          /*TIM2->CNT = 0;
+                        while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                if(TIM2->CNT > 60)
+                                        return DHT11_ERROR_TIMEOUT;
+                        }*/
+
+          //Start counter
+
+          temp = 0;
+
+          //HIGH for 26-28us = 0 / 70us = 1
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin))
+            temp += 1;
+          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                if(TIM2->CNT > 100)
+                                        return DHT11_ERROR_TIMEOUT;
+                        }*/
+
+          //Calc amount of time passed
+          //temp = tiks001;
+          sprintf(cifry, "%d\r\n", temp);
+          USARTSend(cifry);
+          //shift 0
+          data[j] = data[j] << 1;
+
+          //if > 30us it's 1
+          if(temp > 40)
+            data[j] = data[j]+1;
+        }
+    }
+
+  //verify the Checksum
+  if(data[4] != (data[0] + data[2]))
+    return DHT11_ERROR_CHECKSUM;
+
+  //set data
+  dev->temparature = data[2];
+  dev->humidity = data[0];
+
+  return DHT11_SUCCESS;
+}
