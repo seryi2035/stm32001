@@ -43,7 +43,7 @@ void delay_us(uint32_t n_usec)
 
   TIM2->PSC = 0;
   TIM2->ARR = (uint16_t)(16 * n_usec);
-  TIM_Cmd(TIM6, ENABLE);
+  TIM_Cmd(TIM2, ENABLE);
 
   // äëÿ òîãî ÷òîáû óñòàíîâèëñÿ PSC
   TIM2->EGR |= TIM_EGR_UG;
