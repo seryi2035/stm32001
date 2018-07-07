@@ -92,8 +92,13 @@ Switched to a new branch "iss53"
 
 $ git branch iss53
 $ git checkout iss53
+##########слияние
+git checkout master
+$ git merge hotfix
 ###удаление ветки
 $ git branch -d hotfix
 Deleted branch hotfix (3a0874c).
 ###########
-
+git push origin serverfix
+git push origin serverfix:awesomebranch
+git checkout -b serverfix origin/serverfix
