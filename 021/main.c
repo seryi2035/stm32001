@@ -10,7 +10,6 @@
 #include "tim2_delay.h"
 #include "onewire.h"
 #include <string.h>
-#include "dht11.h"
 struct DHT11_Dev dev001;
 
 char cifry[10];
@@ -33,21 +32,6 @@ int main(void)
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
-  /*delay_ms(500);
-  GPIO_SetBits(GPIOB, GPIO_Pin_1);
-  GPIO_SetBits(GPIOB, GPIO_Pin_0);
-  GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_6);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_7);
-  delay_ms(500);
-  GPIO_SetBits(GPIOC, GPIO_Pin_13);
-  GPIO_ResetBits(GPIOB, GPIO_Pin_0);
-  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
-  GPIO_SetBits(GPIOA, GPIO_Pin_6);
-  GPIO_SetBits(GPIOA, GPIO_Pin_7);
-  delay_ms(500);
-  USARTSend("\n\r485 READY\n\r");*/
-  //USARTSend("\r\n485 READY\r\n");
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
@@ -78,12 +62,7 @@ int main(void)
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
         }*/
-      //delay_ms(500);
-      //USARTSend("\n\r485 READYedscsdvsvesvsevsddsvsd\n\r");
-      // USARTSend("\r\n485 READYcmdskmvkdmvklsdmvkldsmvkdsmv\r\n");
-      // delay_ms(500);
-      //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
-      //USART1_IRQHandler();
+
       if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line
           RX_FLAG_END_LINE = 0;
@@ -119,10 +98,6 @@ int main(void)
               RTC_GetMyFormat(&RTC_DateTime, buffer);
               USARTSend(buffer);
               USARTSend("\n\r");
-              //USARTSend("\n\r");
-              //USARTSend(RX_BUF);
-
-              //while (RTC_Counter == RTC_GetCounter()) {}
 
             }
           if (strncmp(RX_BUF, "SCAN\r", 4) == 0) {
@@ -176,58 +151,7 @@ int main(void)
               USARTSend(cifry);
               delay_ms(100);
             }
-          if (strncmp(RX_BUF, "66\r", 4) == 0) {
-              //int res003 = DHT11_read(&dev001);
-              //delay_ms(100);
-              //sprintf(cifry, "%d\r\n", res003);
-              //USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "62\r", 4) == 0) {
-              int res003 = DHT11_read002(&dev001);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "63\r", 4) == 0) {
-              int res003 = DHT11_read003(&dev001);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "64\r", 4) == 0) {
-              int res003 = DHT11_read004(&dev001);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
+
           clear_RXBuffer();
         }
 

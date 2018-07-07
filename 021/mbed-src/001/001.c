@@ -3,7 +3,6 @@
 #include "tim2_delay.h"
 #include "string.h"
 #include "stdio.h"
-#include "dht11.h"
 
 void GETonGPIO() {
   GPIO_InitTypeDef GPIO_InitSructure;
@@ -122,340 +121,6 @@ void USART1Send(char *pucBuffer)
     }
 }
 
-void ADC1init(void) {
-  // clock for ADC (max 14MHz --> 72/6=12MHz)
-  RCC_ADCCLKConfig(RCC_PCLK2_Div6);
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-
-  ADC_InitTypeDef ADC_InitStructure;
-  ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
-  ADC_InitStructure.ADC_ScanConvMode = DISABLE;
-  ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;
-  ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
-  ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
-  ADC_InitStructure.ADC_NbrOfChannel = 1;
-  ADC_RegularChannelConfig(ADC1, ADC_Channel_16, 1, ADC_SampleTime_239Cycles5);
-  ADC_Init(ADC1, &ADC_InitStructure);
-  ADC_TempSensorVrefintCmd(ENABLE);
-  ADC_Cmd(ADC1, ENABLE);
-
-  ADC_ResetCalibration(ADC1);
-  while(ADC_GetResetCalibrationStatus(ADC1));
-  ADC_StartCalibration(ADC1);
-  while(ADC_GetCalibrationStatus(ADC1));
-  ADC_TempSensorVrefintCmd(ENABLE);
-
-
-  ADC_SoftwareStartConvCmd(ADC1, ENABLE);
-  //while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET);
-}
-
-void usart_dma_init(void) {
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
-
-  //DMA
-  DMA_InitTypeDef DMA_InitStruct;
-  DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t)&(USART1->DR);
-  DMA_InitStruct.DMA_MemoryBaseAddr = (uint32_t)&buffer[0];
-  DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralDST;
-  DMA_InitStruct.DMA_BufferSize = sizeof(buffer);
-  DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-  DMA_InitStruct.DMA_Mode = DMA_Mode_Normal;
-  DMA_InitStruct.DMA_Priority = DMA_Priority_Low;
-  DMA_InitStruct.DMA_M2M = DMA_M2M_Disable;
-  DMA_Init(DMA1_Channel4, &DMA_InitStruct);
-
-  //NVIC
-  NVIC_InitTypeDef NVIC_InitStructure;
-  //Enable the USARTx Interrupt
-  NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-
-  //GPIO
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  // Configure USART1 Tx (PA.09) as alternate function push-pull
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-  // Configure USART1 Rx (PA.10) as input floating
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-  // Configure the USART1
-  USART_InitTypeDef USART_InitStructure;
-
-  // USART1 configuration ------------------------------------------------------
-  /* USART1 configured as follow:
-          - BaudRate = 115200 baud
-          - Word Length = 8 Bits
-          - One Stop Bit
-          - No parity
-          - Hardware flow control disabled (RTS and CTS signals)
-          - Receive and transmit enabled
-          - USART Clock disabled
-          - USART CPOL: Clock is active low
-          - USART CPHA: Data is captured on the middle
-          - USART LastBit: The clock pulse of the last data bit is not output to
-              the SCLK pin
-       */
-  USART_InitStructure.USART_BaudRate = 9600;
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;
-  USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-
-  USART_Init(USART1, &USART_InitStructure);
-  //ENABLE USART1
-  USART_Cmd(USART1, ENABLE);
-
-  USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
-  //DMA_Cmd(DMA1_Channel4, ENABLE);
-
-  DMA_ITConfig(DMA1_Channel4, DMA_IT_TC, ENABLE);
-  NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-
-  // Enable the USART1 Receive interrupt: this interrupt is generated when the
-  //  USART1 receive data register is not empty
-  USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-}
-
-void USARTSendDMA(char *pucBuffer) {
-  //strcpy(buffer, pucBuffer);
-  //restart DMA Channel
-  DMA_Cmd(DMA1_Channel4, DISABLE);
-  DMA1_Channel4->CNDTR = strlen(pucBuffer);
-  DMA_Cmd(DMA1_Channel4, ENABLE);
-}
-
-void DMA1_Channel4_IRQHandler(void) {
-  DMA_ClearITPendingBit(DMA1_IT_TC4);
-  DMA_Cmd(DMA1_Channel4, DISABLE);
-}
-
-void TIM4_IRQHandler(void) {
-  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET) {
-      sonar_start();
-      FLAG_ECHO = 1;
-      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-    }
-}
-
-void TIMER4init(void) {
-  //timer4
-  TIM_TimeBaseInitTypeDef TIMER_InitStructure;
-
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-
-  TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-  TIMER_InitStructure.TIM_Prescaler = 7200;
-  TIMER_InitStructure.TIM_Period = 10000;
-  TIM_TimeBaseInit(TIM4, &TIMER_InitStructure);
-  TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
-  TIM_Cmd(TIM4, ENABLE);
-
-  // NVIC Configuration
-  // Enable the TIM4_IRQn Interrupt
-  NVIC_InitTypeDef NVIC_InitStructure;
-  NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-}
-
-void gpioTIMpwm_init (void) {
-  GPIO_InitTypeDef port;
-  TIM_TimeBaseInitTypeDef timer;
-  TIM_OCInitTypeDef timerPWM;
-
-  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-
-  /*GPIO_StructInit(&port);
-      port.GPIO_Mode = GPIO_Mode_IPU;
-      port.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
-      port.GPIO_Speed = GPIO_Speed_2MHz;
-      GPIO_Init(GPIOA, &port);*/
-  GPIO_StructInit(&port);
-  port.GPIO_Mode = GPIO_Mode_AF_PP;
-  port.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8;
-  port.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &port);
-
-  TIM_TimeBaseStructInit(&timer);
-  timer.TIM_Prescaler = 720;
-  timer.TIM_Period = PERIOD;
-  timer.TIM_ClockDivision = 0;
-  timer.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM_TimeBaseInit(TIM4, &timer);
-
-  TIM_OCStructInit(&timerPWM);
-  timerPWM.TIM_Pulse = 0;
-  timerPWM.TIM_OCMode = TIM_OCMode_PWM1;
-  timerPWM.TIM_OutputState = TIM_OutputState_Enable;
-  timerPWM.TIM_OCPolarity = TIM_OCPolarity_High;
-  TIM_OC1Init(TIM4, &timerPWM);
-  TIM_OC2Init(TIM4, &timerPWM);
-  TIM_OC3Init(TIM4, &timerPWM);
-
-  TIM_Cmd(TIM4, ENABLE);
-
-}
-
-/*void TIM3_delay(int i) {
-  while (i > 0) {
-
-      if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET) {
-          //Обязательно сбрасываем флаг
-          TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-          //GPIOC->ODR ^= GPIO_Pin_13;
-          TIM_SetCounter(TIM3, 0);
-          while (TIM_GetCounter(TIM3) < 10);
-          i--;
-
-        }
-    }
-}
-*/
-/*void TIMER3init(void) {
-  //timer3
-  TIM_TimeBaseInitTypeDef TIMER_InitStructure;
-
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-
-  TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-  TIMER_InitStructure.TIM_Prescaler = 7200;
-  TIMER_InitStructure.TIM_Period = 10000;
-  TIM_TimeBaseInit(TIM3, &TIMER_InitStructure);
-  TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
-  TIM_Cmd(TIM3, ENABLE);
-
-  /// NVIC Configuration
-  // Enable the TIM3_IRQn Interrupt
-  NVIC_InitTypeDef NVIC_InitStructure;
-  NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-}
-*/
-void servo_init(void) {
-  GPIO_InitTypeDef port;
-  TIM_TimeBaseInitTypeDef timer;
-  TIM_OCInitTypeDef timerPWM;
-
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-
-  GPIO_StructInit(&port);
-  port.GPIO_Mode = GPIO_Mode_AF_PP;
-  port.GPIO_Pin = GPIO_Pin_6;
-  port.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &port);
-
-  TIM_TimeBaseStructInit(&timer);
-  timer.TIM_Prescaler = PRESCALER;
-  timer.TIM_Period = SYSCLK / PRESCALER / 50;
-  timer.TIM_ClockDivision = 0;
-  timer.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM_TimeBaseInit(TIM4, &timer);
-
-  TIM_OCStructInit(&timerPWM);
-  timerPWM.TIM_Pulse = 1000;
-  timerPWM.TIM_OCMode = TIM_OCMode_PWM1;
-  timerPWM.TIM_OutputState = TIM_OutputState_Enable;
-  timerPWM.TIM_OCPolarity = TIM_OCPolarity_High;
-  TIM_OC1Init(TIM4, &timerPWM);
-
-  TIM_Cmd(TIM4, ENABLE);
-}
-
-void sonar_init(void) {
-  GPIO_InitTypeDef gpio_cfg;
-  GPIO_StructInit(&gpio_cfg);
-
-  //Timer 3
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-
-  TIM_TimeBaseInitTypeDef timer_base;
-  TIM_TimeBaseStructInit (&timer_base);
-  timer_base.TIM_CounterMode = TIM_CounterMode_Up;
-  timer_base.TIM_Prescaler = 72;
-  TIM_TimeBaseInit(TIM3, &timer_base);
-  TIM_Cmd(TIM3, ENABLE);
-
-  //Trigger Pin
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-  gpio_cfg.GPIO_Mode = GPIO_Mode_Out_PP;
-  gpio_cfg.GPIO_Pin = GPIO_Pin_15;
-  GPIO_Init(GPIOB, &gpio_cfg);
-
-  //Set variables used
-  GPIO_InitTypeDef GPIO_InitStruct;
-  EXTI_InitTypeDef EXTI_InitStruct;
-  NVIC_InitTypeDef NVIC_InitStruct;
-
-  //Enable clock for AFIO
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-
-  //Set pin as input
-  GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
-  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  //Add IRQ vector to NVIC
-  //PB0 is connected to EXTI_Line0, which has EXTI0_IRQn vector
-  NVIC_InitStruct.NVIC_IRQChannel = EXTI0_IRQn;
-  NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x00;
-  NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x00;
-  NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStruct);
-
-  //Tell system that you will use PB0 for EXTI_Line0
-  GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource0);
-
-  //PD0 is connected to EXTI_Line0
-  EXTI_InitStruct.EXTI_Line = EXTI_Line0;
-  EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-  EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-  EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
-  EXTI_Init(&EXTI_InitStruct);
-}
-
-void sonar_start(void) {
-  GPIO_SetBits(GPIOB, GPIO_Pin_15);
-  delay_ms(1);
-  GPIO_ResetBits(GPIOB, GPIO_Pin_15);
-}
-
-unsigned int sonar_get() {
-  unsigned long Sonar;
-  //unsigned long Sonar;
-  // 354000 - Sound speed (mm/sec)
-  // 72000000 - F_CPU
-  // 16 - Timer Prescaler
-  // Result = mm
-  Sonar = (354/2) * (unsigned long)SonarValue / (72000 / 72);
-  if (Sonar > 4000) Sonar = 4000;
-  if (Sonar < 20) Sonar = 20;
-
-  return (unsigned int)Sonar;
-}
 
 unsigned char RTC_Init(void) {
   // Включить тактирование модулей управления питанием и управлением резервной областью
@@ -1127,17 +792,6 @@ void TX_66(UART_DATA *MODBUS)
 
 }
 void oprosite(void) {
-  /*u8 comm[2];
-  comm[0] = (u8) '\xcc';
-  comm[1] = (u8) '\x44';
-  OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(8000);
-  comm[1] = (u8) '\x4E';
-  OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(1000);
-  //USARTSend("oprosheno\n\r");
-*/
-  //ПОПРОБОВАТЬ ПОЗЖЕ
   u8 comm[2];
   comm[0] = 0xcc;
   comm[1] = 0x44;
@@ -1203,358 +857,123 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   return 0;
 }
 
+int DHT11_read000(struct DHT11_Dev* dev) {
+
+  //Initialisation
+  uint8_t i, j, temp;
+  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  //Generate START condition
+  //o
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //dev->port->MODER |= GPIO_MODER_MODER6_0;
+
+  //Put LOW for at least 18ms
+  GPIO_ResetBits(dev->port, dev->pin);
+
+  delay_ms(18);
+  //wait 18ms
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 18000);
+
+  //Put HIGH for 20-40us
+  GPIO_SetBits(dev->port, dev->pin);
+
+  delay_us(40);
+  //wait 40us
+  //TIM2->CNT = 0;
+  //while((TIM2->CNT) <= 40);
+  //End start condition
+
+  //io();
+  //Input mode to receive data
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+
+  //DHT11 ACK
+  //should be LOW for at least 80us
+  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+  //TIM2->CNT = 0;
+  u16 tiks001 = 0;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      if(tiks001 > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+
+  //should be HIGH for at least 80us
+  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+  //TIM2->CNT = 0;
+  tiks001 = 0;
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      delay_us(1);
+      tiks001 += 1;
+    }
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      if(tiks001 > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
+
+  //Read 40 bits (8*5)
+  for(j = 0; j < 5; ++j) {
+      for(i = 0; i < 8; ++i) {
+
+          //LOW for 50us
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+          /*TIM2->CNT = 0;
+                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                          if(TIM2->CNT > 60)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
+
+          //Start counter
+          tiks001 = 0;
+
+          //HIGH for 26-28us = 0 / 70us = 1
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+              delay_us(1);
+              tiks001 += 1;
+            }
+          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+                                          if(TIM2->CNT > 100)
+                                                  return DHT11_ERROR_TIMEOUT;
+                                  }*/
+
+          //Calc amount of time passed
+          temp = tiks001;
+
+          //shift 0
+          data[j] = data[j] << 1;
+
+          //if > 30us it's 1
+          if(temp > 40)
+            data[j] = data[j]+1;
+        }
+    }
+
+  //verify the Checksum
+  if(data[4] != (data[0] + data[2]))
+    return DHT11_ERROR_CHECKSUM;
+
+
+  //set data
+  dev->temparature = data[2];
+  dev->humidity = data[0];
+
+  return DHT11_SUCCESS;
+}
+
 int DHT11_read(struct DHT11_Dev* dev) {
-
-  //Initialisation
-  uint8_t i, j, temp;
-  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  //Generate START condition
-  //o
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
-
-  //Put LOW for at least 18ms
-  GPIO_ResetBits(dev->port, dev->pin);
-
-  delay_ms(18);
-  //wait 18ms
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 18000);
-
-  //Put HIGH for 20-40us
-  GPIO_SetBits(dev->port, dev->pin);
-
-  delay_us(40);
-  //wait 40us
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 40);
-  //End start condition
-
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  u16 tiks001 = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-    }
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  tiks001 = 0;
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-    }
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
-  //Read 40 bits (8*5)
-  for(j = 0; j < 5; ++j) {
-      for(i = 0; i < 8; ++i) {
-
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-          /*TIM2->CNT = 0;
-                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                          if(TIM2->CNT > 60)
-                                                  return DHT11_ERROR_TIMEOUT;
-                                  }*/
-
-          //Start counter
-          tiks001 = 0;
-
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-              delay_us(1);
-              tiks001 += 1;
-            }
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                          if(TIM2->CNT > 100)
-                                                  return DHT11_ERROR_TIMEOUT;
-                                  }*/
-
-          //Calc amount of time passed
-          temp = tiks001;
-
-          //shift 0
-          data[j] = data[j] << 1;
-
-          //if > 30us it's 1
-          if(temp > 40)
-            data[j] = data[j]+1;
-        }
-    }
-
-  //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
-    return DHT11_ERROR_CHECKSUM;
-
-
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-
-  return DHT11_SUCCESS;
-}
-
-int DHT11_read002(struct DHT11_Dev* dev) {
-
-  //Initialisation
-  uint8_t i, j, temp;
-  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  //Generate START condition
-  //o
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
-
-  //Put LOW for at least 18ms
-  GPIO_ResetBits(dev->port, dev->pin);
-
-  delay_ms(18);
-  //wait 18ms
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 18000);
-
-  //Put HIGH for 20-40us
-  GPIO_SetBits(dev->port, dev->pin);
-
-  delay_us(40);
-  //wait 40us
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 40);
-  //End start condition
-
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  u16 tiks001 = 0;
-  /*while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-    }*/
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  tiks001 = 0;
-  /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-    }*/
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
-  //Read 40 bits (8*5)
-  for(j = 0; j < 5; ++j) {
-      for(i = 0; i < 8; ++i) {
-
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-          /*TIM2->CNT = 0;
-                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                          if(TIM2->CNT > 60)
-                                                  return DHT11_ERROR_TIMEOUT;
-                                  }*/
-
-          //Start counter
-          tiks001 = 0;
-
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-              delay_us(1);
-              tiks001 += 1;
-            }
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                          if(TIM2->CNT > 100)
-                                                  return DHT11_ERROR_TIMEOUT;
-                                  }*/
-
-          //Calc amount of time passed
-          temp = tiks001;
-
-          //shift 0
-          data[j] = data[j] << 1;
-
-          //if > 30us it's 1
-          if(temp > 40)
-            data[j] = data[j]+1;
-        }
-    }
-
-  //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
-    return DHT11_ERROR_CHECKSUM;
-
-
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-
-  return DHT11_SUCCESS;
-}
-
-int DHT11_read003(struct DHT11_Dev* dev) {
-
-  //Initialisation
-  uint8_t i, j, temp;
-  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  //Generate START condition
-  //o
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-  /*
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-*/
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
-
-  //Put LOW for at least 18ms
-  GPIO_ResetBits(dev->port, dev->pin);
-
-  //wait 18ms
-  delay_ms(18);
-
-  //Put HIGH for 20-40us
-  GPIO_SetBits(dev->port, dev->pin);
-
-  //wait 40us
-  delay_us(40);
-  //End start condition
-
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  temp = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      temp += 1;
-      if(temp > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  char cifry[10];
-  sprintf(cifry, "%d\r\n", temp);
-  USARTSend(cifry);
-  temp = 0;
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      temp += 1;
-      if(temp > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-  sprintf(cifry, "%d\r\n", temp);
-  USARTSend(cifry);
-  //Read 40 bits (8*5)
-  for(j = 0; j < 5; ++j) {
-      for(i = 0; i < 8; ++i) {
-
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-          /*TIM2->CNT = 0;
-                        while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 60)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
-
-          //Start counter
-
-          temp = 0;
-
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin))
-            temp += 1;
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 100)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
-
-          //Calc amount of time passed
-          //temp = tiks001;
-          sprintf(cifry, "%d\r\n", temp);
-          USARTSend(cifry);
-          //shift 0
-          data[j] = data[j] << 1;
-
-          //if > 30us it's 1
-          if(temp > 40)
-            data[j] = data[j]+1;
-        }
-    }
-
-  //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
-    return DHT11_ERROR_CHECKSUM;
-
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-
-  return DHT11_SUCCESS;
-}
-
-int DHT11_read004(struct DHT11_Dev* dev) {
 
   //Initialisation
   uint8_t i, j, temp;

@@ -35,21 +35,6 @@ void usart1_init(void);
 void USART1_IRQHandler(void);
 void clear_RXBuffer(void);
 void USART1Send(char *pucBuffer);
-void ADC1init(void);
-void usart_dma_init(void);
-void USARTSendDMA(char *pucBuffer);
-void DMA1_Channel4_IRQHandler(void);
-void TIM4_IRQHandler(void);
-void TIMER4init(void);
-//void SetSysClockTo72(void);
-void gpioTIMpwm_init (void);
-//void TIM3_delay(int i);
-//void TIMER3init(void);
-void servo_init(void);
-void sonar_init(void);
-void sonar_start(void);
-unsigned int sonar_get(void);
-//unsigned char RTC_Init(void);
 unsigned char RTC_Init(void);
 void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStruct);
 uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct);
@@ -103,3 +88,20 @@ void TX_66(UART_DATA *MODBUS);
 void oprosite (void);
 void net_tx3(UART_DATA *uart);
 void net_tx1(UART_DATA *uart);
+
+#define DHT11_SUCCESS         1
+#define DHT11_ERROR_CHECKSUM  2
+#define DHT11_ERROR_TIMEOUT   3
+
+typedef struct DHT11_Dev {
+	uint8_t temparature;
+	uint8_t humidity;
+	GPIO_TypeDef* port;
+	uint16_t pin;
+} DHT11_Dev;
+
+int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin);
+int DHT11_read(struct DHT11_Dev* dev);
+int DHT11_read000(struct DHT11_Dev* dev);
+
+
