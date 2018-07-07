@@ -484,7 +484,7 @@ unsigned char RTC_Init(void) {
       while ((RCC->BDCR & RCC_BDCR_LSERDY) != RCC_BDCR_LSERDY){}
       RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE);
 
-      RTC_SetPrescaler(0x7FFF); // Устанавливаем делитель, чтобы часы считали секунды
+      RTC_SetPrescaler(((u16) 33170)); // Устанавливаем делитель, чтобы часы считали секунды
       // Включаем RTC
       RCC_RTCCLKCmd(ENABLE);
       // Ждем синхронизацию
