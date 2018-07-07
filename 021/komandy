@@ -79,3 +79,21 @@ git config --global credential.helper 'cache --timeout=3600'
 ##############################
 # screen /dev/ttyUSB0 
 
+##########наконец-то удалил из индекса
+git rm --cached 021/mbed.qbs.user
+##########создал тестинг / переключился на него и обратно
+git branch testing
+git checkout testing
+git checkout master
+
+$ git checkout -b iss53
+Switched to a new branch "iss53"
+Это сокращение для:
+
+$ git branch iss53
+$ git checkout iss53
+###удаление ветки
+$ git branch -d hotfix
+Deleted branch hotfix (3a0874c).
+###########
+
