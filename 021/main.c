@@ -21,14 +21,14 @@ int main(void)
 
   GETonGPIO(); //led C13
   TIM2_init();
-  usart1_init(); //A9 A10 //RS232
+  usart1_init(); //A9 RXD A10 TXD //RS232
   usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
   OW_Init(); //usart2 А2 А3         B10 B11
   dev001.port = GPIOA;
-  dev001.pin = GPIO_Pin_8;
+  dev001.pin = GPIO_Pin_0;
   dev001.humidity = 0;
   dev001.temparature = 0;
-  DHT11_init(&dev001, GPIOA, GPIO_Pin_8);
+  DHT11_init(&dev001, GPIOA, GPIO_Pin_0);
   //wwdgenable();
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1

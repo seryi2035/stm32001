@@ -481,9 +481,9 @@ void USART3_IRQHandler(void)
         }
     }
 }
-void USART3Send(char *pucBuffer)
-//for RS 485;
-{
+void USART3Send(char *pucBuffer) {
+  //for RS 485;
+
   delay_ms(2);
   GPIO_ResetBits(GPIOC, GPIO_Pin_13);
   GPIO_ResetBits(GPIOB, GPIO_Pin_0);
@@ -980,8 +980,9 @@ int DHT11_read000(struct DHT11_Dev* dev) {
 int DHT11_read(struct DHT11_Dev* dev) {
 
   //Initialisation
-  uint8_t i, j, temp;
-  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  uint8_t i, j;//, temp;
+  u16 temp;
+  uint8_t data[15] = {0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00};
   GPIO_InitTypeDef GPIO_InitStructure;
 
   //Generate START condition
@@ -1029,7 +1030,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
   while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
       delay_us(1);
       temp += 1;
-      if(temp > 100)
+      if(temp > 10000)
         break;
         //return DHT11_ERROR_TIMEOUT;
     }
@@ -1042,14 +1043,14 @@ int DHT11_read(struct DHT11_Dev* dev) {
   temp = 0;
   while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
       temp += 1;
-      if(temp > 100)
+      if(temp > 10000)
         break;
         //return DHT11_ERROR_TIMEOUT;
     }
   sprintf(cifry, "%d\r\n", temp);
   USARTSend(cifry);
   //Read 40 bits (8*5)
-  for(j = 0; j < 5; ++j) {
+  for(j = 0; j < 15; ++j) {
       for(i = 0; i < 8; ++i) {
 
           //LOW for 50us
@@ -1074,7 +1075,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
 
           //Calc amount of time passed
           //temp = tiks001;
-          sprintf(cifry, "%d\r\n", temp);
+          sprintf(cifry, "%d   ", temp);
           USARTSend(cifry);
           //shift 0
           data[j] = data[j] << 1;
@@ -1083,6 +1084,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
           if(temp > 40)
             data[j] = data[j]+1;
         }
+      USARTSend("\n\r");
     }
 
   //verify the Checksum
