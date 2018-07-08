@@ -29,7 +29,7 @@ int main(void)
   dev001.humidity = 0;
   dev001.temparature = 0;
   DHT11_init(&dev001, GPIOA, GPIO_Pin_8);
-  wwdgenable();
+  //wwdgenable();
 
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
@@ -48,10 +48,11 @@ int main(void)
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
 
     }
-
+  iwdg_init();
   USARTSend("\n\rREADY!!!\n\r");
   //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
+      IWDG_ReloadCounter();
       /*if(uart3.rxgap==1)
         {
           MODBUS_SLAVE(&uart3);
@@ -101,7 +102,7 @@ int main(void)
               USARTSend("\n\r");
 
             }
-          if (strncmp(RX_BUF, "SCAN\r", 4) == 0) {
+          if (strncmp(RX_BUF, "SCAN\r", 4) == 0 || strncmp(RX_BUF, "scan\r", 4) == 0 ) {
               for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF08[i] = (u8) RX_BUF[i];
               OW_Scan(RX_BUF08, 1);
               for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF[i] = (char) RX_BUF08[i];

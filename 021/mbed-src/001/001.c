@@ -247,7 +247,8 @@ void RTC_GetMyFormat(RTC_DateTimeTypeDef* RTC_DateTimeStruct, char *  buffer01) 
   const char MONTH10[] = "October";
   const char MONTH11[] = "November";
   const char MONTH12[] = "December";
-  const char * MONTH[12]={MONTH1, MONTH2, MONTH3, MONTH4, MONTH5, MONTH6, MONTH7, MONTH8, MONTH9, MONTH10, MONTH11, MONTH12};
+  const char * MONTH[12]={MONTH1, MONTH2, MONTH3, MONTH4, MONTH5,
+                          MONTH6, MONTH7, MONTH8, MONTH9, MONTH10, MONTH11, MONTH12};
 
   sprintf(buffer01, "%s %d %s %04d",
           WDAY[RTC_DateTimeStruct->RTC_Wday],
@@ -338,7 +339,8 @@ void schitatTemp(char* imya) {
   //OW_Send(OW_SEND_RESET, '\x28\xEE\x09\x03\x1A\x16\x01\x67\x88\xbe\xff\xff", 12, RX_BUF, 2, 10);
   uint8_t buf[2];
   //OW_Send(OW_SEND_RESET, "\xcc\xbe\xff\xff", 4, buf,2, 2);
-  u8 command01[12] = {(u8)'\x55',(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xff',(u8) '\xff'};
+  u8 command01[12] = {(u8)'\x55',(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],(u8) imya[5],
+                      (u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xff',(u8) '\xff'};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
   //USARTSend("\n\rTHIS IS 000\n\r");
   //USARTSend(buf);
@@ -554,8 +556,10 @@ u16 schitatTemp(char* imya) {
   //OW_Send(OW_SEND_RESET, "\x28\xEE\x09\x03\x1A\x16\x01\x67\x88\xbe\xff\xff", 12, RX_BUF, 2, 10);
   uint8_t buf[2];
   //OW_Send(OW_SEND_RESET, "\xcc\xbe\xff\xff", 4, buf,2, 2);
-  //char command01[12] = {'\x55', imya[0], imya[1], imya[2], imya[3], imya[4], imya[5], imya[6], imya[7],'\xbe', '\xff', '\xff'};
-  u8 command01[12] = {(u8)'\x55',(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xff',(u8) '\xff'};
+  //char command01[12] = {'\x55', imya[0], imya[1], imya[2], imya[3], imya[4],
+    imya[5], imya[6], imya[7],'\xbe', '\xff', '\xff'};
+  u8 command01[12] = {(u8)'\x55',(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8)
+imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xff',(u8) '\xff'};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
   //USARTSend("\n\rTHIS IS 000\n\r");
   //USARTSend(buf);
@@ -745,7 +749,8 @@ void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type)
 }
 float schitatfTemp(char* imya) {
   uint8_t buf[2];
-  u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
+  u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],
+                       (u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
   float ftemp;
   ftemp = (float) ((buf[1] << 8) | buf[0]) /(float) 16.0;
@@ -753,7 +758,8 @@ float schitatfTemp(char* imya) {
 }
 int schitatiTemp(char* imya) {
   uint8_t buf[2];
-  u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
+  u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],
+                       (u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
   int itemp;
   itemp = ((buf[1] << 8) | buf[0]) *1000 / 16;
@@ -1113,4 +1119,19 @@ void WWDG_IRQHandler(void) {
 
   // Toggle LED which connected to PC13
   GPIOC->ODR ^= GPIO_Pin_13;
+}
+void iwdg_init(void) {
+	// включаем LSI
+	RCC_LSICmd(ENABLE);
+	while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
+	// разрешается доступ к регистрам IWDG
+	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+	// устанавливаем предделитель
+	IWDG_SetPrescaler(IWDG_Prescaler_256);
+	// значение для перезагрузки
+	IWDG_SetReload(0x300); //256/40000*0x300=4.9152
+	// перезагрузим значение
+	IWDG_ReloadCounter();
+	// LSI должен быть включен
+	IWDG_Enable();
 }
