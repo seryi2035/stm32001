@@ -829,8 +829,6 @@ void net_tx1(UART_DATA *uart)
 
 }
 // ////////////////////////////////////////////////////////DHT11
-#include "dht11.h"
-
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -1090,4 +1088,29 @@ int DHT11_read(struct DHT11_Dev* dev) {
   dev->humidity = data[0];
 
   return DHT11_SUCCESS;
+}
+
+void wwdgenable(void){
+  // Enable Watchdog
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG,ENABLE);
+  WWDG_DeInit();
+  WWDG_SetPrescaler(WWDG_Prescaler_8); //1, 2, 4, 8
+  WWDG_SetWindowValue(127); // 64...127
+  WWDG_Enable(100);
+  WWDG_EnableIT();
+
+  NVIC_InitTypeDef NVIC_InitStructure;
+  NVIC_InitStructure.NVIC_IRQChannel = WWDG_IRQn;    //WWDG interrupt
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);   // NVIC initialization
+}
+void WWDG_IRQHandler(void) {
+  //int i;
+  WWDG_ClearFlag(); //This function reset flag WWDG->SR and cancel the resetting
+  WWDG_SetCounter(100);
+
+  // Toggle LED which connected to PC13
+  GPIOC->ODR ^= GPIO_Pin_13;
 }
