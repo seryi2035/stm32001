@@ -141,7 +141,7 @@ int main(void)
               USARTSend(buffer);
             }
           if (strncmp(RX_BUF, "6\r", 4) == 0) {
-              int res003 = DHT11_read(&dev001);
+              int res003 = DHT11_read000(&dev001);
               delay_ms(100);
               sprintf(cifry, "%d\r\n", res003);
               USARTSend(cifry);

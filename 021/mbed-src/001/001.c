@@ -836,29 +836,40 @@ void net_tx1(UART_DATA *uart)
 }
 // ////////////////////////////////////////////////////////DHT11
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
-  GPIO_InitTypeDef GPIO_InitStructure;
+  TIM_TimeBaseInitTypeDef TIM_TimBaseStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
 
-  dev->port = port;
-  dev->pin = pin;
+    dev->port = port;
+    dev->pin = pin;
 
-  //Initialise TIMER2
-  /*TIM_TimBaseStructure.TIM_Period = 84000000 - 1;
-  TIM_TimBaseStructure.TIM_Prescaler = 84;
-  TIM_TimBaseStructure.TIM_ClockDivision = 0;
-  TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM_TimeBaseInit(TIM2, &TIM_TimBaseStructure);
-  TIM_Cmd(TIM2, ENABLE);*/
-  //и так есть основной void TIM2_init(void);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+    //Initialise TIMER4
+    TIM_TimBaseStructure.TIM_Period = 50000;
+    TIM_TimBaseStructure.TIM_Prescaler = 72;
+    TIM_TimBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM4, &TIM_TimBaseStructure);
+    TIM_Cmd(TIM4, ENABLE);
 
-  //Initialise GPIO DHT11
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  return 0;
+    // NVIC Configuration
+    // Enable the TIM4_IRQn Interrupt
+    NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+    //и так есть основной void TIM2_init(void);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    //Initialise GPIO DHT11
+    GPIO_InitStructure.GPIO_Pin = dev->pin;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(dev->port, &GPIO_InitStructure);
+    GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
+    return 0;
 }
 
 int DHT11_read000(struct DHT11_Dev* dev) {
@@ -900,61 +911,46 @@ int DHT11_read000(struct DHT11_Dev* dev) {
   //Input mode to receive data
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(dev->port, &GPIO_InitStructure);
-
+  while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
   //DHT11 ACK
   //should be LOW for at least 80us
   //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  u16 tiks001 = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
-    }
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
+  TIM4->CNT = 0;
 
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      //if(TIM4->CNT > 100)
+        //return DHT11_ERROR_TIMEOUT;
+}
   //should be HIGH for at least 80us
   //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  //TIM2->CNT = 0;
-  tiks001 = 0;
+  TIM2->CNT = 0;
   while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      tiks001 += 1;
+      //if(TIM2->CNT > 100)
+        //return DHT11_ERROR_TIMEOUT;
     }
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(tiks001 > 100)
-        return DHT11_ERROR_TIMEOUT;
-    }
-
   //Read 40 bits (8*5)
   for(j = 0; j < 5; ++j) {
       for(i = 0; i < 8; ++i) {
 
           //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-          /*TIM2->CNT = 0;
-                                  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+          TIM2->CNT = 0;
+                                  /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 60)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
           //Start counter
-          tiks001 = 0;
 
           //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-              delay_us(1);
-              tiks001 += 1;
-            }
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {      }
           /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 100)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
           //Calc amount of time passed
-          temp = tiks001;
+          temp = TIM2->CNT;
 
           //shift 0
           data[j] = data[j] << 1;
@@ -1136,4 +1132,13 @@ void iwdg_init(void) {
 	IWDG_ReloadCounter();
 	// LSI должен быть включен
 	IWDG_Enable();
+}
+
+void TIM4_IRQHandler(void)
+{
+        if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+        {
+            TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+            //TimeSec++;
+        }
 }

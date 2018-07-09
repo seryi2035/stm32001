@@ -106,3 +106,4 @@ int DHT11_read000(struct DHT11_Dev* dev);
 void wwdgenable(void);
 void WWDG_IRQHandler(void);
 void iwdg_init(void);
+void TIM4_IRQHandler(void);
