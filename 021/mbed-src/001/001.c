@@ -802,10 +802,10 @@ void oprosite(void) {
   comm[0] = 0xcc;
   comm[1] = 0x44;
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(1000);
+  delay_ms(100);
   comm[1] = 0x4e;
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(1000);
+  delay_ms(100);
   USARTSend("oprosheno\n\r");
 
 }
@@ -837,46 +837,47 @@ void net_tx1(UART_DATA *uart)
 // ////////////////////////////////////////////////////////DHT11
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   TIM_TimeBaseInitTypeDef TIM_TimBaseStructure;
-    GPIO_InitTypeDef GPIO_InitStructure;
-    NVIC_InitTypeDef NVIC_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
+  NVIC_InitTypeDef NVIC_InitStructure;
 
-    dev->port = port;
-    dev->pin = pin;
+  dev->port = port;
+  dev->pin = pin;
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-    //Initialise TIMER4
-    TIM_TimBaseStructure.TIM_Period = 50000;
-    TIM_TimBaseStructure.TIM_Prescaler = 72;
-    TIM_TimBaseStructure.TIM_ClockDivision = 0;
-    TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit(TIM4, &TIM_TimBaseStructure);
-    TIM_Cmd(TIM4, ENABLE);
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+  //Initialise TIMER4
+  TIM_TimBaseStructure.TIM_Period = 50000;
+  TIM_TimBaseStructure.TIM_Prescaler = 72;
+  TIM_TimBaseStructure.TIM_ClockDivision = 0;
+  TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseInit(TIM4, &TIM_TimBaseStructure);
+  TIM_Cmd(TIM4, ENABLE);
 
-    // NVIC Configuration
-    // Enable the TIM4_IRQn Interrupt
-    NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-    //и так есть основной void TIM2_init(void);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    //Initialise GPIO DHT11
-    GPIO_InitStructure.GPIO_Pin = dev->pin;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-    //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(dev->port, &GPIO_InitStructure);
-    GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
-    return 0;
+  // NVIC Configuration
+  // Enable the TIM4_IRQn Interrupt
+  NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  //и так есть основной void TIM2_init(void);
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  //Initialise GPIO DHT11
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(dev->port, &GPIO_InitStructure);
+  GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
+  return 0;
 }
 
 int DHT11_read000(struct DHT11_Dev* dev) {
 
   //Initialisation
   uint8_t i, j, temp;
-  uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  //uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+  uint8_t data[5] = {0, 0, 0, 0, 0};
   GPIO_InitTypeDef GPIO_InitStructure;
 
   //Generate START condition
@@ -911,65 +912,62 @@ int DHT11_read000(struct DHT11_Dev* dev) {
   //Input mode to receive data
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(dev->port, &GPIO_InitStructure);
-  while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
+  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
   //DHT11 ACK
   //should be LOW for at least 80us
   //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
   TIM4->CNT = 0;
 
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      //if(TIM4->CNT > 100)
-        //return DHT11_ERROR_TIMEOUT;
-}
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) ;
+  if(TIM4->CNT > 100)
+    return DHT11_ERROR_TIMEOUT;
   //should be HIGH for at least 80us
   //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM2->CNT = 0;
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      //if(TIM2->CNT > 100)
-        //return DHT11_ERROR_TIMEOUT;
-    }
+  TIM4->CNT = 0;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+  if(TIM4->CNT > 100)
+    return DHT11_ERROR_TIMEOUT;
   //Read 40 bits (8*5)
   for(j = 0; j < 5; ++j) {
       for(i = 0; i < 8; ++i) {
-
+          TIM4->CNT = 0;
           //LOW for 50us
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-          TIM2->CNT = 0;
-                                  /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+
+          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 60)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
           //Start counter
-
+          TIM4->CNT = 0;
           //HIGH for 26-28us = 0 / 70us = 1
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {      }
+          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {      }
           /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 100)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
           //Calc amount of time passed
-          temp = TIM2->CNT;
+          temp = TIM4->CNT;
 
           //shift 0
           data[j] = data[j] << 1;
 
           //if > 30us it's 1
-          if(temp > 40)
-            data[j] = data[j]+1;
+          if(temp > 40) {
+              data[j] = data[j]+1;
+            }
+
         }
     }
 
   //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
+  if(data[4] != (u8) (data[0] + data[2] + data[1] + data[3]))
     return DHT11_ERROR_CHECKSUM;
-
-
   //set data
   dev->temparature = data[2];
   dev->humidity = data[0];
-
   return DHT11_SUCCESS;
 }
 
@@ -1028,7 +1026,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
       temp += 1;
       if(temp > 10000)
         break;
-        //return DHT11_ERROR_TIMEOUT;
+      //return DHT11_ERROR_TIMEOUT;
     }
 
   //should be HIGH for at least 80us
@@ -1041,7 +1039,7 @@ int DHT11_read(struct DHT11_Dev* dev) {
       temp += 1;
       if(temp > 10000)
         break;
-        //return DHT11_ERROR_TIMEOUT;
+      //return DHT11_ERROR_TIMEOUT;
     }
   sprintf(cifry, "%d\r\n", temp);
   USARTSend(cifry);
@@ -1119,26 +1117,154 @@ void WWDG_IRQHandler(void) {
   GPIOC->ODR ^= GPIO_Pin_13;
 }
 void iwdg_init(void) {
-	// включаем LSI
-	RCC_LSICmd(ENABLE);
-	while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
-	// разрешается доступ к регистрам IWDG
-	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-	// устанавливаем предделитель
-	IWDG_SetPrescaler(IWDG_Prescaler_256);
-	// значение для перезагрузки
-	IWDG_SetReload(0x300); //256/40000*0x300=4.9152
-	// перезагрузим значение
-	IWDG_ReloadCounter();
-	// LSI должен быть включен
-	IWDG_Enable();
+  // включаем LSI
+  RCC_LSICmd(ENABLE);
+  while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
+  // разрешается доступ к регистрам IWDG
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+  // устанавливаем предделитель
+  IWDG_SetPrescaler(IWDG_Prescaler_256);
+  // значение для перезагрузки
+  IWDG_SetReload(0x300); //256/40000*0x300=4.9152
+  // перезагрузим значение
+  IWDG_ReloadCounter();
+  // LSI должен быть включен
+  IWDG_Enable();
 }
 
 void TIM4_IRQHandler(void)
 {
-        if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
-        {
-            TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-            //TimeSec++;
+  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+    {
+      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+      //TimeSec++;
+    }
+}
+int DHT11_read002(struct DHT11_Dev* dev) {
+
+  //Initialisation
+  uint8_t i, j;//, temp;
+  u16 temp[120];
+  uint8_t data[15] = {0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00};
+  GPIO_InitTypeDef GPIO_InitStructure;
+
+  //Generate START condition
+  //o
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+  GPIO_InitStructure.GPIO_Pin = dev->pin;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  //Put HIGH for start
+  //GPIO_SetBits(GPIOA, dev->pin);
+  //delay_ms(500);
+  //Put LOW for at least 18ms
+  //GPIO_ResetBits(GPIOA, dev->pin);
+  GPIO_WriteBit(GPIOA, dev->pin,Bit_RESET);
+  //wait 18ms
+  //TIM4->CNT = 0;
+  //while((TIM4->CNT) <= 18000);
+  delay_ms(18);
+
+  //Put HIGH for 20-40us
+  GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
+
+  //wait 40us
+  delay_us(39);
+  //IM4->CNT = 0;
+  //while((TIM4->CNT) <= 40);
+  //End start condition
+
+  //io();
+  //Input mode to receive data
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
+  //DHT11 ACK
+  //should be LOW for at least 80us
+  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
+  TIM4->CNT = 0;
+  temp[0] = 0;
+  while(!GPIO_ReadInputDataBit(GPIOA, dev->pin)) {
+      //delay_us(1);
+      //temp[0] += 1;
+      //if(temp > 10000);
+      //break;
+      //return DHT11_ERROR_TIMEOUT;
+    }
+  temp[0] = TIM4->CNT;
+  //should be HIGH for at least 80us
+  //while(GPIO_ReadInputDataBit(GPIOA, dev->pin));
+  //char cifry[10];
+  //sprintf(cifry, "%d\r\n", temp[0]);
+  //USARTSend(cifry);
+  TIM4->CNT = 0;
+  temp[1] = 0;
+  while(GPIO_ReadInputDataBit(GPIOA, dev->pin)) {
+      //delay_us(1);
+      //temp[1] += 1;
+      //if(temp > 10000);
+      //break;
+      //return DHT11_ERROR_TIMEOUT;
+    }
+  temp[1] = TIM4->CNT;
+  //sprintf(cifry, "%d\r\n", temp[1]);
+  //USARTSend(cifry);
+  //Read 40 bits (8*5)
+  u8 i004 = 2;
+  for(j = 0; j < 6; ++j) {
+      for(i = 0; i < 8; ++i) {
+          TIM4->CNT = 0;
+          temp[i004] = 0;
+          //LOW for 50us
+          while(!GPIO_ReadInputDataBit(GPIOA, dev->pin) && TIM4->CNT < 100) {
+              //delay_us(1);
+              //temp[i004]++;
+            }
+          //sprintf(cifry, "%d   ", temp[i004]);
+          //USARTSend(cifry);
+          temp[i004] = TIM4->CNT;
+          TIM4->CNT = 0;
+          temp[i004+1] = 0;
+
+          //HIGH for 26-28us = 0 / 70us = 1
+          while(GPIO_ReadInputDataBit(GPIOA, dev->pin) && TIM4->CNT < 100) {
+              //delay_us(1);
+              //temp[i004+1]++;
+            }
+          temp[i004+1] = TIM4->CNT;
+          //Calc amount of time passed
+          //temp = tiks001;
+          //sprintf(cifry, "%d   ", temp[i004+1]);
+          //USARTSend(cifry);
+          //shift 0
+          //data[j] = data[j] << 1;
+
+          //if > 30us it's 1
+          //if(temp > 40)
+          //  data[j] = data[j]+1;
+          i004 += 2;
         }
+
+      //USARTSend("\n\r");
+    }
+
+  //verify the Checksum
+  if(data[4] != (data[0] + data[2]))
+    return DHT11_ERROR_CHECKSUM;
+
+  //set data
+  dev->temparature = data[2];
+  dev->humidity = data[0];
+  char cifry[10];
+  for(i=0; i<120;i++) {
+      sprintf(cifry, "%d ", temp[i]);
+      USARTSend(cifry);
+      if ((i >= 9 && (i-1) % 16 == 0) || i == 0 || i == 1) USARTSend("\n\r");
+    }
+  USARTSend("\n\r");
+  return DHT11_SUCCESS;
 }

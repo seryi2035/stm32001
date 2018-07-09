@@ -25,14 +25,14 @@ int main(void)
   usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
   OW_Init(); //usart2 А2 А3         B10 B11
   dev001.port = GPIOA;
-  dev001.pin = GPIO_Pin_0;
+  dev001.pin = GPIO_Pin_12;
   dev001.humidity = 0;
   dev001.temparature = 0;
-  DHT11_init(&dev001, GPIOA, GPIO_Pin_0);
+  DHT11_init(&dev001, dev001.port, dev001.pin);
   //wwdgenable();
 
-  //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
-  //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
+  //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+  //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
@@ -40,7 +40,7 @@ int main(void)
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 1;
+      RTC_DateTime.RTC_Hours = 11;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -153,7 +153,19 @@ int main(void)
               USARTSend(cifry);
               delay_ms(100);
             }
-
+          if (strncmp(RX_BUF, "62\r", 4) == 0) {
+              int res003 = DHT11_read002(&dev001);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", res003);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.temparature);
+              USARTSend(cifry);
+              delay_ms(100);
+              sprintf(cifry, "%d\r\n", dev001.humidity);
+              USARTSend(cifry);
+              delay_ms(100);
+            }
           clear_RXBuffer();
         }
 
