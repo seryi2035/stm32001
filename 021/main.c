@@ -118,7 +118,7 @@ int main(void)
             }
           if (strncmp(RX_BUF, "5\r", 4) == 0) {
               oprosite ();
-              //USARTSend("oprosheno\n\r");
+              USARTSend("oprosheno\n\r");
             }
           if(strncmp(RX_BUF, "2\r", 4) == 0) {
               delay_ms(100);
@@ -141,20 +141,7 @@ int main(void)
               USARTSend(buffer);
             }
           if (strncmp(RX_BUF, "6\r", 4) == 0) {
-              int res003 = DHT11_read000(&dev001);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "62\r", 4) == 0) {
-              int res003 = DHT11_read002(&dev001);
+              int res003 = DHT11_read(&dev001);
               delay_ms(100);
               sprintf(cifry, "%d\r\n", res003);
               USARTSend(cifry);

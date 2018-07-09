@@ -806,7 +806,7 @@ void oprosite(void) {
   comm[1] = 0x4e;
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
   delay_ms(100);
-  USARTSend("oprosheno\n\r");
+  //USARTSend("oprosheno\n\r");
 
 }
 void net_tx3(UART_DATA *uart)
@@ -871,8 +871,15 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
   return 0;
 }
-
-int DHT11_read000(struct DHT11_Dev* dev) {
+void TIM4_IRQHandler(void)
+{
+  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+    {
+      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+      //TimeSec++;
+    }
+}
+int DHT11_read(struct DHT11_Dev* dev) {
 
   //Initialisation
   uint8_t i, j, temp;
@@ -971,127 +978,6 @@ int DHT11_read000(struct DHT11_Dev* dev) {
   return DHT11_SUCCESS;
 }
 
-int DHT11_read(struct DHT11_Dev* dev) {
-
-  //Initialisation
-  uint8_t i, j;//, temp;
-  u16 temp;
-  uint8_t data[15] = {0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00};
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  //Generate START condition
-  //o
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-  /*
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-*/
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
-
-  //Put LOW for at least 18ms
-  GPIO_ResetBits(GPIOA, GPIO_Pin_8);
-
-  //wait 18ms
-  delay_ms(18);
-
-  //Put HIGH for 20-40us
-  GPIO_SetBits(GPIOA, GPIO_Pin_8);
-
-  //wait 40us
-  delay_us(35);
-  //End start condition
-
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  temp = 0;
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      delay_us(1);
-      temp += 1;
-      if(temp > 10000)
-        break;
-      //return DHT11_ERROR_TIMEOUT;
-    }
-
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  char cifry[10];
-  sprintf(cifry, "%d\r\n", temp);
-  USARTSend(cifry);
-  temp = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      temp += 1;
-      if(temp > 10000)
-        break;
-      //return DHT11_ERROR_TIMEOUT;
-    }
-  sprintf(cifry, "%d\r\n", temp);
-  USARTSend(cifry);
-  //Read 40 bits (8*5)
-  for(j = 0; j < 15; ++j) {
-      for(i = 0; i < 8; ++i) {
-
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-          /*TIM2->CNT = 0;
-                        while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 60)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
-
-          //Start counter
-
-          temp = 0;
-
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin))
-            temp += 1;
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-                                if(TIM2->CNT > 100)
-                                        return DHT11_ERROR_TIMEOUT;
-                        }*/
-
-          //Calc amount of time passed
-          //temp = tiks001;
-          sprintf(cifry, "%d   ", temp);
-          USARTSend(cifry);
-          //shift 0
-          data[j] = data[j] << 1;
-
-          //if > 30us it's 1
-          if(temp > 40)
-            data[j] = data[j]+1;
-        }
-      USARTSend("\n\r");
-    }
-
-  //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
-    return DHT11_ERROR_CHECKSUM;
-
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-
-  return DHT11_SUCCESS;
-}
-
 void wwdgenable(void){
   // Enable Watchdog
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG,ENABLE);
@@ -1130,141 +1016,4 @@ void iwdg_init(void) {
   IWDG_ReloadCounter();
   // LSI должен быть включен
   IWDG_Enable();
-}
-
-void TIM4_IRQHandler(void)
-{
-  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
-    {
-      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-      //TimeSec++;
-    }
-}
-int DHT11_read002(struct DHT11_Dev* dev) {
-
-  //Initialisation
-  uint8_t i, j;//, temp;
-  u16 temp[120];
-  uint8_t data[15] = {0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00};
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  //Generate START condition
-  //o
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  //Put HIGH for start
-  //GPIO_SetBits(GPIOA, dev->pin);
-  //delay_ms(500);
-  //Put LOW for at least 18ms
-  //GPIO_ResetBits(GPIOA, dev->pin);
-  GPIO_WriteBit(GPIOA, dev->pin,Bit_RESET);
-  //wait 18ms
-  //TIM4->CNT = 0;
-  //while((TIM4->CNT) <= 18000);
-  delay_ms(18);
-
-  //Put HIGH for 20-40us
-  GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
-
-  //wait 40us
-  delay_us(39);
-  //IM4->CNT = 0;
-  //while((TIM4->CNT) <= 40);
-  //End start condition
-
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
-  TIM4->CNT = 0;
-  temp[0] = 0;
-  while(!GPIO_ReadInputDataBit(GPIOA, dev->pin)) {
-      //delay_us(1);
-      //temp[0] += 1;
-      //if(temp > 10000);
-      //break;
-      //return DHT11_ERROR_TIMEOUT;
-    }
-  temp[0] = TIM4->CNT;
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(GPIOA, dev->pin));
-  //char cifry[10];
-  //sprintf(cifry, "%d\r\n", temp[0]);
-  //USARTSend(cifry);
-  TIM4->CNT = 0;
-  temp[1] = 0;
-  while(GPIO_ReadInputDataBit(GPIOA, dev->pin)) {
-      //delay_us(1);
-      //temp[1] += 1;
-      //if(temp > 10000);
-      //break;
-      //return DHT11_ERROR_TIMEOUT;
-    }
-  temp[1] = TIM4->CNT;
-  //sprintf(cifry, "%d\r\n", temp[1]);
-  //USARTSend(cifry);
-  //Read 40 bits (8*5)
-  u8 i004 = 2;
-  for(j = 0; j < 6; ++j) {
-      for(i = 0; i < 8; ++i) {
-          TIM4->CNT = 0;
-          temp[i004] = 0;
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(GPIOA, dev->pin) && TIM4->CNT < 100) {
-              //delay_us(1);
-              //temp[i004]++;
-            }
-          //sprintf(cifry, "%d   ", temp[i004]);
-          //USARTSend(cifry);
-          temp[i004] = TIM4->CNT;
-          TIM4->CNT = 0;
-          temp[i004+1] = 0;
-
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(GPIOA, dev->pin) && TIM4->CNT < 100) {
-              //delay_us(1);
-              //temp[i004+1]++;
-            }
-          temp[i004+1] = TIM4->CNT;
-          //Calc amount of time passed
-          //temp = tiks001;
-          //sprintf(cifry, "%d   ", temp[i004+1]);
-          //USARTSend(cifry);
-          //shift 0
-          //data[j] = data[j] << 1;
-
-          //if > 30us it's 1
-          //if(temp > 40)
-          //  data[j] = data[j]+1;
-          i004 += 2;
-        }
-
-      //USARTSend("\n\r");
-    }
-
-  //verify the Checksum
-  if(data[4] != (data[0] + data[2]))
-    return DHT11_ERROR_CHECKSUM;
-
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-  char cifry[10];
-  for(i=0; i<120;i++) {
-      sprintf(cifry, "%d ", temp[i]);
-      USARTSend(cifry);
-      if ((i >= 9 && (i-1) % 16 == 0) || i == 0 || i == 1) USARTSend("\n\r");
-    }
-  USARTSend("\n\r");
-  return DHT11_SUCCESS;
 }
