@@ -112,6 +112,11 @@ int main(void)
           if (strncmp(RX_BUF, "0\r", 4) == 0) {
               schitatTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
               //schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+              //iResult = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+              sprintf(cifry, "int %d\r\n", schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30"));
+              USARTSend(cifry);
+              sprintf(cifry, "float %f\r\n", schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30"));
+              USARTSend(cifry);
             }
           if (strncmp(RX_BUF, "1\r", 4) == 0) {
               schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");

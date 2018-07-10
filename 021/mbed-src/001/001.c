@@ -85,7 +85,6 @@ void usart1_init(void) {
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 
 }
-
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART1);
@@ -103,13 +102,11 @@ void USART1_IRQHandler(void) {
       USART_SendData(USART1,(u16) RXc);
     }
 }
-
 void clear_RXBuffer(void) {
   for (RXi = 0; RXi < RX_BUF_SIZE; RXi++)
     RX_BUF[RXi] = '\0';
   RXi = 0;
 }
-
 void USART1Send(char *pucBuffer)
 //;
 {
@@ -120,7 +117,6 @@ void USART1Send(char *pucBuffer)
         }
     }
 }
-
 
 unsigned char RTC_Init(void) {
   // Включить тактирование модулей управления питанием и управлением резервной областью
@@ -358,7 +354,6 @@ void schitatTemp(char* imya) {
   //sprintf(cifry, ".%d\r\n", (int) (0.0625*1000)*(buf[0] % 16));
   //USARTSend(cifry);
 }
-
 void vvhex(char vv) {
   int a, b;
   char ff[2];
@@ -372,6 +367,7 @@ void vvhex(char vv) {
   USARTSend(ff);
 }
 //ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
+
 void usart3_init(void) {
   //USART 3 and GPIO B 10 11 ON
   RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3 | RCC_APB2Periph_GPIOB, ENABLE);
@@ -425,7 +421,6 @@ void usart3_init(void) {
   //GPIO_ResetBits(GPIOB, GPIO_Pin_1);
   // GPIO_SetBits(GPIOB, GPIO_Pin_0);
 }
-
 /*void USART3_IRQHandler(void) {
   if ((USART3->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART3);
@@ -513,7 +508,6 @@ void USART3Send(char *pucBuffer) {
   GPIO_ResetBits(GPIOA, GPIO_Pin_7);
   delay_ms(2);
 }
-
 void sendaddrow (void) {
   for(int i=0; i < RX_BUF_SIZE && i < 20;i++) {
       if (RX_BUF[i] != 0) {
@@ -579,6 +573,7 @@ imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xf
   retern  ;
 }
 */
+
 void MODBUS_SLAVE(UART_DATA *MODBUS)
 {
   unsigned int tmp;
@@ -632,7 +627,6 @@ void MODBUS_SLAVE(UART_DATA *MODBUS)
   MODBUS->rxtimer=0xFFFF;
 
 }
-
 unsigned int Crc16(unsigned char *ptrByte, int byte_cnt)
 {
   unsigned int w=0;
@@ -655,7 +649,6 @@ unsigned int Crc16(unsigned char *ptrByte, int byte_cnt)
     }
   return w;
 }
-
 void TX_03_04(UART_DATA *MODBUS)
 {
   unsigned int tmp,tmp1;

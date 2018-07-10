@@ -13,6 +13,8 @@ char RX_BUF[RX_BUF_SIZE]; //= {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0
 u8 RX_BUF08[RX_BUF_SIZE];
 char buffer[80];// = {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
 volatile int TimeResult;
+volatile int iResult;
+volatile float fResult;
 volatile int TimeSec;
 volatile uint8_t TimeState;
 volatile uint8_t FLAG_ECHO;
