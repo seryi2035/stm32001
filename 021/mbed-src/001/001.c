@@ -5,43 +5,43 @@
 #include "stdio.h"
 
 void GETonGPIO() {
-  GPIO_InitTypeDef GPIO_InitSructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
   //LED C.13
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
 
-  GPIO_InitSructure.GPIO_Pin = GPIO_Pin_13;
-  GPIO_InitSructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitSructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOC, &GPIO_InitSructure);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
 
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
   // A7 PP
-  GPIO_InitSructure.GPIO_Pin = GPIO_Pin_7;
-  GPIO_InitSructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitSructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitSructure);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
   //A6 PP
-  GPIO_InitSructure.GPIO_Pin = GPIO_Pin_6;
-  GPIO_InitSructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitSructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitSructure);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 
 
   //KNOPKA B0
   /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitSructure.GPIO_Pin = GPIO_Pin_0;
-  GPIO_InitSructure.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_InitSructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &GPIO_InitSructure);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
   //KNOPKA B1
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitSructure.GPIO_Pin = GPIO_Pin_1;
-  GPIO_InitSructure.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_InitSructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &GPIO_InitSructure);*/
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);*/
 }
 
 void usart1_init(void) {
@@ -69,6 +69,11 @@ void usart1_init(void) {
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   //GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
+  // A11 PP
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
   //  USART 1
   USART_InitTypeDef USART_InitStructure;
 
@@ -83,7 +88,8 @@ void usart1_init(void) {
   USART_Cmd(USART1, ENABLE);
 
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
-
+  //GDN on A11
+  GPIO_SetBits(GPIOA, GPIO_Pin_11);
 }
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
@@ -110,12 +116,16 @@ void clear_RXBuffer(void) {
 void USART1Send(char *pucBuffer)
 //;
 {
+  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  delay_ms(2);
   while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
       while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
         {
         }
     }
+  delay_ms(2);
+  GPIO_SetBits(GPIOA, GPIO_Pin_11);
 }
 
 unsigned char RTC_Init(void) {
@@ -478,11 +488,9 @@ void USART3Send(char *pucBuffer) {
   //for RS 485;
 
   delay_ms(2);
-  GPIO_ResetBits(GPIOC, GPIO_Pin_13);
+  //GPIO_ResetBits(GPIOC, GPIO_Pin_13);
   GPIO_ResetBits(GPIOB, GPIO_Pin_0);
   GPIO_ResetBits(GPIOB, GPIO_Pin_1);
-  GPIO_SetBits(GPIOA, GPIO_Pin_6);
-  GPIO_SetBits(GPIOA, GPIO_Pin_7);
 
   delay_ms(2);
   u16 a;
@@ -504,8 +512,6 @@ void USART3Send(char *pucBuffer) {
   GPIO_SetBits(GPIOB, GPIO_Pin_1);
   GPIO_SetBits(GPIOB, GPIO_Pin_0);
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_6);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_7);
   delay_ms(2);
 }
 void sendaddrow (void) {

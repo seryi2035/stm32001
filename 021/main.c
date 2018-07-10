@@ -19,10 +19,10 @@ int main(void)
   uint32_t RTC_Counter = 0;
   RTC_DateTimeTypeDef RTC_DateTime;
 
-  GETonGPIO(); //led C13
+  GETonGPIO(); //led C13 A6 A7
   TIM2_init();
-  usart1_init(); //A9 RXD A10 TXD //RS232
-  usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE
+  usart1_init(); //A9 RXD A10 TXD //RS232 A11 //485
+  usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE ++шлет компу)
   OW_Init(); //usart2 А2 А3         B10 B11
   dev001.port = GPIOA;
   dev001.pin = GPIO_Pin_12;
@@ -115,7 +115,8 @@ int main(void)
               //iResult = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
               sprintf(cifry, "int %d\r\n", schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30"));
               USARTSend(cifry);
-              sprintf(cifry, "float %f\r\n", schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30"));
+              fResult = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+              sprintf(cifry, "float %d.%d\r\n",(int) fResult, (int) (0.0625*1000)*(((int) (fResult * 16)) % 16));
               USARTSend(cifry);
             }
           if (strncmp(RX_BUF, "1\r", 4) == 0) {
