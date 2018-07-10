@@ -89,7 +89,8 @@ void usart1_init(void) {
 
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
   //GDN on A11
-  GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
 }
 void USART1_IRQHandler(void) {
   if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
@@ -116,7 +117,8 @@ void clear_RXBuffer(void) {
 void USART1Send(char *pucBuffer)
 //;
 {
-  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
   delay_ms(2);
   while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
@@ -125,7 +127,8 @@ void USART1Send(char *pucBuffer)
         }
     }
   delay_ms(2);
-  GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
 }
 
 unsigned char RTC_Init(void) {
