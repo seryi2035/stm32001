@@ -315,14 +315,12 @@ char get_ab_xFF(int a){
     }
   return ff;
 }
-
 u8 convT_DS18B20(u8 LSB, u8 MSB)
 {
   LSB >>= 4; // убираем дробную часть
   MSB = (u8) (MSB * 16); // убираем лишние знаки
   return(MSB | LSB); // объединяем 2 байта -> возврат
 }
-
 void schitatTemp(char* imya) {
   //-----------------------------------------------------------------------------
   // процедура общения с шиной 1-wire
@@ -581,7 +579,6 @@ imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xf
   retern  ;
 }
 */
-
 void MODBUS_SLAVE(UART_DATA *MODBUS)
 {
   unsigned int tmp;
@@ -753,7 +750,7 @@ float schitatfTemp(char* imya) {
                        (u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
   float ftemp;
-  ftemp = (float) ((buf[1] << 8) | buf[0]) /(float) 16.0;
+  ftemp = (float) ( (float) ((buf[1] << 8) | buf[0]) / 16.0);
   return ftemp;
 }
 int schitatiTemp(char* imya) {
@@ -761,10 +758,10 @@ int schitatiTemp(char* imya) {
   u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],
                        (u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
   OW_Send(OW_SEND_RESET, command01, 12, buf, 2, 10);
-  int itemp;
-  itemp = ((buf[1] << 8) | buf[0]) *1000 / 16;
-  delay_ms(10);
-  return itemp;
+  //int itemp;
+  //itemp = ((buf[1] << 8) | buf[0]) *1000 / 16;
+  //delay_ms(10);
+  return ((int) convT_DS18B20(buf[0], buf[1]));
 }
 void TX_66(UART_DATA *MODBUS)
 {
@@ -807,7 +804,6 @@ void oprosite(void) {
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
   delay_ms(100);
   //USARTSend("oprosheno\n\r");
-
 }
 void net_tx3(UART_DATA *uart)
 {

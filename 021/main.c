@@ -88,10 +88,10 @@ int main(void)
             }
           if (strncmp(RX_BUF, "T\r", 1) == 0 || strncmp(RX_BUF, "t\r", 4) == 0) {
               RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "\r\n\r\nCOUNTER: %d\r\n", (int)RTC_Counter);
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
               USARTSend(buffer);
               RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
-              sprintf(buffer, "\r\n\r\n%d.%d.%d  %d:%d:%d\r\n\r",
+              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
                       (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
                       (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
               USARTSend(buffer);
