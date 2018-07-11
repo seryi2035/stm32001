@@ -24,7 +24,6 @@ void TIM2_init(void)
   // ñ÷èòàåì îäèí ðàç
   TIM_SelectOnePulseMode(TIM2, TIM_OPMode_Single);
 }
-
 void TIM2_IRQHandler(void)
 {
   extern volatile uint8_t f_timer_2_end;
@@ -36,7 +35,6 @@ void TIM2_IRQHandler(void)
   TIM_Cmd(TIM2, DISABLE);
   TIM_ITConfig(TIM2, TIM_IT_Update, DISABLE);
 }
-
 void delay_us(uint32_t n_usec)
 {
   f_timer_2_end = 0;
@@ -54,7 +52,6 @@ void delay_us(uint32_t n_usec)
 
   while(f_timer_2_end == 0);
 }
-
 void delay_ms(uint32_t n_msec)
 {
   f_timer_2_end = 0;
@@ -69,4 +66,36 @@ void delay_ms(uint32_t n_msec)
   TIM_Cmd(TIM2, ENABLE);
 
   while(f_timer_2_end == 0);
+}
+
+void TIM4_init(void)
+{
+  TIM_TimeBaseInitTypeDef TIM_TimBaseStructure;
+  NVIC_InitTypeDef  NVIC_InitStructure;
+
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+  //Initialise TIMER4
+  TIM_TimBaseStructure.TIM_Period = 50000;
+  TIM_TimBaseStructure.TIM_Prescaler = 72;
+  TIM_TimBaseStructure.TIM_ClockDivision = 0;
+  TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseInit(TIM4, &TIM_TimBaseStructure);
+  TIM_Cmd(TIM4, ENABLE);
+
+  // NVIC Configuration
+  // Enable the TIM4_IRQn Interrupt
+  NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  //и так есть основной void TIM2_init(void);
+}
+void TIM4_IRQHandler(void)
+{
+  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+    {
+      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+      //TimeSec++;
+    }
 }

@@ -21,8 +21,9 @@ int main(void)
 
   GETonGPIO(); //led C13 A6 A7
   TIM2_init();
-  usart1_init(); //A9 RXD A10 TXD //RS232 A11 //485
-  usart3_init();//  B 10 TX DI //  B 11 RX RO //B1 RE //B0 DE ++шлет компу)
+  TIM4_init();
+  usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485
+  usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
   OW_Init(); //usart2 А2 А3         B10 B11
   dev001.port = GPIOA;
   dev001.pin = GPIO_Pin_12;
@@ -36,11 +37,11 @@ int main(void)
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 9;
+      RTC_DateTime.RTC_Date = 10;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 11;
+      RTC_DateTime.RTC_Hours = 20;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -49,7 +50,7 @@ int main(void)
 
     }
   iwdg_init();
-  USARTSend("\n\rREADY!!!\n\r");
+  USART1Send("\n\rREADY!!!\n\r");
   //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
       IWDG_ReloadCounter();

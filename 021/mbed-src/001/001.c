@@ -114,9 +114,7 @@ void clear_RXBuffer(void) {
     RX_BUF[RXi] = '\0';
   RXi = 0;
 }
-void USART1Send(char *pucBuffer)
-//;
-{
+void USART1Send(char *pucBuffer) {
   GPIO_SetBits(GPIOA, GPIO_Pin_11);
   //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
   delay_ms(2);
@@ -431,10 +429,10 @@ void usart3_init(void) {
 
   USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 
-  //GPIO_ResetBits(GPIOB, GPIO_Pin_1);
-  // GPIO_SetBits(GPIOB, GPIO_Pin_0);
+  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
+  GPIO_SetBits(GPIOB, GPIO_Pin_0);
 }
-/*void USART3_IRQHandler(void) {
+void USART3_IRQHandler(void) {
   if ((USART3->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART3);
       RX_BUF[RXi] = RXc;
@@ -448,11 +446,11 @@ void usart3_init(void) {
           RX_FLAG_END_LINE = 1;
         }
       //Echo
-      //USART_SendData(USART1, RXc);
+      USART_SendData(USART3, RXc);
     }
 }
-*/
-void USART3_IRQHandler(void)
+
+/*void USART3_IRQHandler(void)
 {
   //Receive Data register not empty interrupt
   if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
@@ -486,36 +484,30 @@ void USART3_IRQHandler(void)
             }
         }
     }
-}
+}*/
 void USART3Send(char *pucBuffer) {
   //for RS 485;
-
-  delay_ms(2);
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);
   GPIO_ResetBits(GPIOB, GPIO_Pin_0);
-  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
+  GPIO_SetBits(GPIOB, GPIO_Pin_1);
 
   delay_ms(2);
-  u16 a;
+  //u16 a;
   while (*pucBuffer) {
-      /*USART_SendData(USART3,(uint16_t) *pucBuffer++);
+      USART_SendData(USART3,(uint16_t) *pucBuffer++);
       while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
         {
-        }*/
-      a = ((uint16_t) *pucBuffer++);
-      USART_SendData(USART3,a);
-      /*while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
-        {
-        }*/
-      delay_ms(1);
+        }
+      //a = ((uint16_t) *pucBuffer++);
+      //USART_SendData(USART3,a);
     }
   delay_ms(2);
-  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
+  //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
-  GPIO_SetBits(GPIOB, GPIO_Pin_1);
+  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
   GPIO_SetBits(GPIOB, GPIO_Pin_0);
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);
-  delay_ms(2);
+  //delay_ms(500);
 }
 void sendaddrow (void) {
   for(int i=0; i < RX_BUF_SIZE && i < 20;i++) {
@@ -834,48 +826,19 @@ void net_tx1(UART_DATA *uart)
 }
 // ////////////////////////////////////////////////////////DHT11
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
-  TIM_TimeBaseInitTypeDef TIM_TimBaseStructure;
   GPIO_InitTypeDef GPIO_InitStructure;
-  NVIC_InitTypeDef NVIC_InitStructure;
 
   dev->port = port;
   dev->pin = pin;
 
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
-  //Initialise TIMER4
-  TIM_TimBaseStructure.TIM_Period = 50000;
-  TIM_TimBaseStructure.TIM_Prescaler = 72;
-  TIM_TimBaseStructure.TIM_ClockDivision = 0;
-  TIM_TimBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-  TIM_TimeBaseInit(TIM4, &TIM_TimBaseStructure);
-  TIM_Cmd(TIM4, ENABLE);
-
-  // NVIC Configuration
-  // Enable the TIM4_IRQn Interrupt
-  NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-  //и так есть основной void TIM2_init(void);
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
   //Initialise GPIO DHT11
   GPIO_InitStructure.GPIO_Pin = dev->pin;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(dev->port, &GPIO_InitStructure);
   GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
   return 0;
-}
-void TIM4_IRQHandler(void)
-{
-  if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
-    {
-      TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-      //TimeSec++;
-    }
 }
 int DHT11_read(struct DHT11_Dev* dev) {
 
