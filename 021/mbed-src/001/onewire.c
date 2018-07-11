@@ -181,14 +181,17 @@ uint8_t OW_Reset() {
       return OW_OK;
     }*/
   //Pull line --> wait for 490 us --> release line --> wait for 60 us --> check if line is pulled down
+  OWgpioOUT();
   GPIO_ResetBits(OWport001, OWpin001); //---------------
   delay_us(490);
   GPIO_SetBits(OWport001, OWpin001);
   delay_us(70);
   OWgpioIN();
   if (!GPIO_ReadInputDataBit(OWport001, OWpin001)) {
+      delay_us(400);
       return OW_OK;
     }
+  delay_us(400);
   return OW_NO_DEVICE;
 }
 
@@ -243,6 +246,47 @@ void OW_SendBits(uint8_t num_bits) {
       DMA_Cmd(OW_DMA_CH_TX, DISABLE);
       DMA_Cmd(OW_DMA_CH_RX, DISABLE);
       USART_DMACmd(OW_USART, USART_DMAReq_Tx | USART_DMAReq_Rx, DISABLE);*/
+  /*u8 i;
+  u8 result = 0;
+  OWgpioOUT();
+  for(i=0; i<num_bits; i++)
+    {
+      result >>= 1;
+      GPIO_ResetBits(OWport001, OWpin001); //---------------     master - drive bus low
+      delay_us(6);      // master - wait 6us (A-5,6,15)
+      OWgpioIN();
+      //GPIO_SetBits(OWport001, OWpin001); //  +++++++++++      // master - release bus
+      delay_us(9);      // master - wait 9us (E-5,9,12)
+
+      if(!GPIO_ReadInputDataBit(OWport001, OWpin001)) {
+          result |= 0x80;
+        }
+      delay_us(55);     // master - wait 55us (F-50,55,N/A)
+      GPIO_SetBits(OWport001, OWpin001); //  +++++++++++
+      delay_us(1);
+    }
+  //return (result);*/
+  u8 i;
+  OWgpioOUT();
+  for(i=0; i<8; i++)
+    {
+      if(data & 0x01)
+        { /* write '1' */
+          GPIO_ResetBits(OWport001, OWpin001); //---------------     master - drive bus low
+          delay_us(6);      // master - wait 6us (A-5,6,15)
+          GPIO_SetBits(OWport001, OWpin001); //  +++++++++++      // master - release bus
+          delay_us(64);   // master - wait 64us (B-59,64,N/A)
+        }
+      else
+        { /* write '0' */
+          GPIO_ResetBits(OWport001, OWpin001); //---------------     master - drive bus low
+          delay_us(60);      // master - wait 60us (C-60,60,120) */
+          GPIO_SetBits(OWport001, OWpin001); //  +++++++++++      // master - release bus
+          delay_us(10);   // master - wait 10us (D-8,10,N/A) */
+        }
+      data >>= 1;
+    }
+// //////////////////////////////////////////////////////////////////////////////////////// ДА НУ НА ХРЕН!!!!!!!!!! НАДО ПРОИСАТЬ ПЕРЕДАЧУ 8 БАЙТ И ПРИНЯТИЕ 8 БАЙТ ВМЕСТО ДМА
 }
 
 //-----------------------------------------------------------------------------
