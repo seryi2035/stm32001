@@ -24,7 +24,7 @@ int main(void)
   TIM4_init(); // мкс 0-49999 TIM4->CNT
   usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485
   usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
-  OW_Init(); //usart2 А2 А3         B10 B11
+  OW_Init(); //usart2 А2 А3  или А8
   dev001.port = GPIOA;
   dev001.pin = GPIO_Pin_12;
   dev001.humidity = 0;
@@ -159,46 +159,6 @@ int main(void)
               sprintf(cifry, "%d\r\n", dev001.humidity);
               USARTSend(cifry);
               delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "tms\r", 4) == 0) {
-              RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
-              USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
-              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
-                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
-                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-              USARTSend(buffer);
-              for(u8 i002 = 0; i002 < 1; i002++) delay_ms(4000);
-              USARTSend("\n\r4(000) sec\n\r");
-              RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
-              USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
-              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
-                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
-                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-              USARTSend(buffer);
-            }
-          if (strncmp(RX_BUF, "tus\r", 4) == 0) {
-              RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
-              USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
-              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
-                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
-                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-              USARTSend(buffer);
-              for(u16 i002 = 0; i002 < 1000; i002++) delay_us(3000);
-              USARTSend("\n\r3(000000) sec\n\r");
-              RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
-              USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
-              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
-                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
-                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-              USARTSend(buffer);
             }
           clear_RXBuffer();
         }
