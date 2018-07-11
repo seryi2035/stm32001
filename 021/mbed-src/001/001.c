@@ -841,7 +841,8 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   return 0;
 }
 int DHT11_read(struct DHT11_Dev* dev) {
-
+  dev->temparature = 0;
+  dev->humidity = 0;
   //Initialisation
   uint8_t i, j, temp;
   //uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
