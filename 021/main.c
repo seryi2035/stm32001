@@ -20,8 +20,8 @@ int main(void)
   RTC_DateTimeTypeDef RTC_DateTime;
 
   GETonGPIO(); //led C13 A6 A7
-  TIM2_init();
-  TIM4_init();
+  TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
+  TIM4_init(); // мкс 0-49999 TIM4->CNT
   usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485
   usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
   OW_Init(); //usart2 А2 А3         B10 B11
@@ -37,11 +37,11 @@ int main(void)
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 10;
+      RTC_DateTime.RTC_Date = 11;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 20;
+      RTC_DateTime.RTC_Hours = 1;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -50,7 +50,7 @@ int main(void)
 
     }
   iwdg_init();
-  USART1Send("\n\rREADY!!!\n\r");
+  USARTSend("\n\rREADY!!!\n\r");
   //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
       IWDG_ReloadCounter();
@@ -159,6 +159,46 @@ int main(void)
               sprintf(cifry, "%d\r\n", dev001.humidity);
               USARTSend(cifry);
               delay_ms(100);
+            }
+          if (strncmp(RX_BUF, "tms\r", 4) == 0) {
+              RTC_Counter = RTC_GetCounter();
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
+              USARTSend(buffer);
+              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
+              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
+                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
+                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
+              USARTSend(buffer);
+              for(u8 i002 = 0; i002 < 1; i002++) delay_ms(4000);
+              USARTSend("\n\r4(000) sec\n\r");
+              RTC_Counter = RTC_GetCounter();
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
+              USARTSend(buffer);
+              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
+              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
+                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
+                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
+              USARTSend(buffer);
+            }
+          if (strncmp(RX_BUF, "tus\r", 4) == 0) {
+              RTC_Counter = RTC_GetCounter();
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
+              USARTSend(buffer);
+              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
+              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
+                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
+                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
+              USARTSend(buffer);
+              for(u16 i002 = 0; i002 < 1000; i002++) delay_us(3000);
+              USARTSend("\n\r3(000000) sec\n\r");
+              RTC_Counter = RTC_GetCounter();
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
+              USARTSend(buffer);
+              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
+              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
+                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
+                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
+              USARTSend(buffer);
             }
           clear_RXBuffer();
         }
