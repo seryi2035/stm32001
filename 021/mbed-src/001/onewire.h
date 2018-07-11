@@ -37,5 +37,7 @@
 uint8_t OW_Init();
 uint8_t OW_Send(uint8_t sendReset, uint8_t *command, uint8_t cLen, uint8_t *data, uint8_t dLen, uint8_t readStart);
 uint8_t OW_Scan(uint8_t *buf, uint8_t num);
+void OWgpioOUT (void);
+void OWgpioIN (void);
 
 #endif /* ONEWIRE_H_ */

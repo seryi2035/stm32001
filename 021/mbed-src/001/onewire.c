@@ -3,7 +3,7 @@
  *
  *  Version 1.0.3
  */
-
+#include "tim2_delay.h"
 #include "onewire.h"
 
 #ifdef OW_USART1
@@ -38,7 +38,8 @@ uint8_t ow_buf[8];
 #define OW_0	0x00
 #define OW_1	0xff
 #define OW_R_1	0xff
-
+#define OWport001 GPIOA
+#define OWpin001 GPIO_Pin_8
 //-----------------------------------------------------------------------------
 // функция преобразует один байт в восемь, для передачи через USART
 // ow_byte - байт, который надо преобразовать
@@ -79,8 +80,9 @@ uint8_t OW_toByte(uint8_t *ow_bits) {
 // инициализирует USART и DMA
 //-----------------------------------------------------------------------------
 uint8_t OW_Init() {
-  GPIO_InitTypeDef GPIO_InitStruct;
-  USART_InitTypeDef USART_InitStructure;
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); //      ######################## GPIOA
+  OWgpioOUT();
+  /*USART_InitTypeDef USART_InitStructure;
 
   if (OW_USART == USART1) {
       RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO,
@@ -135,7 +137,7 @@ uint8_t OW_Init() {
   USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
 
   USART_Init(OW_USART, &USART_InitStructure);
-  USART_Cmd(OW_USART, ENABLE);
+  USART_Cmd(OW_USART, ENABLE);*/
   return OW_OK;
 }
 
@@ -144,7 +146,7 @@ uint8_t OW_Init() {
 //-----------------------------------------------------------------------------
 uint8_t OW_Reset() {
   uint8_t ow_presence;
-  USART_InitTypeDef USART_InitStructure;
+  /*USART_InitTypeDef USART_InitStructure;
 
   USART_InitStructure.USART_BaudRate = 9600;
   USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -177,63 +179,70 @@ uint8_t OW_Reset() {
 
   if (ow_presence != 0xf0) {
       return OW_OK;
+    }*/
+  //Pull line --> wait for 490 us --> release line --> wait for 60 us --> check if line is pulled down
+  GPIO_ResetBits(OWport001, OWpin001); //---------------
+  delay_us(490);
+  GPIO_SetBits(OWport001, OWpin001);
+  delay_us(70);
+  OWgpioIN();
+  if (!GPIO_ReadInputDataBit(OWport001, OWpin001)) {
+      return OW_OK;
     }
-
   return OW_NO_DEVICE;
 }
 
 // внутренняя процедура. Записывает указанное число бит
 void OW_SendBits(uint8_t num_bits) {
-  DMA_InitTypeDef DMA_InitStructure;
+  /*DMA_InitTypeDef DMA_InitStructure;
 
-  // DMA на чтение
-  DMA_DeInit(OW_DMA_CH_RX);
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART2->DR);
-  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) ow_buf;
-  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-  DMA_InitStructure.DMA_BufferSize = num_bits;
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-  DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
-  DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-  DMA_Init(OW_DMA_CH_RX, &DMA_InitStructure);
+      // DMA на чтение
+      DMA_DeInit(OW_DMA_CH_RX);
+      DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART2->DR);
+      DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) ow_buf;
+      DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+      DMA_InitStructure.DMA_BufferSize = num_bits;
+      DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+      DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+      DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+      DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+      DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+      DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
+      DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+      DMA_Init(OW_DMA_CH_RX, &DMA_InitStructure);
 
-  // DMA на запись
-  DMA_DeInit(OW_DMA_CH_TX);
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART2->DR);
-  DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) ow_buf;
-  DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-  DMA_InitStructure.DMA_BufferSize = num_bits;
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-  DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
-  DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
-  DMA_Init(OW_DMA_CH_TX, &DMA_InitStructure);
+      // DMA на запись
+      DMA_DeInit(OW_DMA_CH_TX);
+      DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t) &(USART2->DR);
+      DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t) ow_buf;
+      DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
+      DMA_InitStructure.DMA_BufferSize = num_bits;
+      DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+      DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+      DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+      DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+      DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
+      DMA_InitStructure.DMA_Priority = DMA_Priority_Low;
+      DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
+      DMA_Init(OW_DMA_CH_TX, &DMA_InitStructure);
 
-  // старт цикла отправки
-  USART_ClearFlag(OW_USART, USART_FLAG_RXNE | USART_FLAG_TC | USART_FLAG_TXE);
-  USART_DMACmd(OW_USART, USART_DMAReq_Tx | USART_DMAReq_Rx, ENABLE);
-  DMA_Cmd(OW_DMA_CH_RX, ENABLE);
-  DMA_Cmd(OW_DMA_CH_TX, ENABLE);
+      // старт цикла отправки
+      USART_ClearFlag(OW_USART, USART_FLAG_RXNE | USART_FLAG_TC | USART_FLAG_TXE);
+      USART_DMACmd(OW_USART, USART_DMAReq_Tx | USART_DMAReq_Rx, ENABLE);
+      DMA_Cmd(OW_DMA_CH_RX, ENABLE);
+      DMA_Cmd(OW_DMA_CH_TX, ENABLE);
 
-  // Ждем, пока не примем 8 байт
-  while (DMA_GetFlagStatus(OW_DMA_FLAG) == RESET) {
-#ifdef OW_GIVE_TICK_RTOS
+      // Ждем, пока не примем 8 байт
+      while (DMA_GetFlagStatus(OW_DMA_FLAG) == RESET) {
+    #ifdef OW_GIVE_TICK_RTOS
       taskYIELD();
-#endif
-    }
+    #endif
+}
 
-  // отключаем DMA
-  DMA_Cmd(OW_DMA_CH_TX, DISABLE);
-  DMA_Cmd(OW_DMA_CH_RX, DISABLE);
-  USART_DMACmd(OW_USART, USART_DMAReq_Tx | USART_DMAReq_Rx, DISABLE);
-
+      // отключаем DMA
+      DMA_Cmd(OW_DMA_CH_TX, DISABLE);
+      DMA_Cmd(OW_DMA_CH_RX, DISABLE);
+      USART_DMACmd(OW_USART, USART_DMAReq_Tx | USART_DMAReq_Rx, DISABLE);*/
 }
 
 //-----------------------------------------------------------------------------
@@ -370,4 +379,22 @@ uint8_t OW_Scan(uint8_t *buf, uint8_t num) {
     }
 
   return found;
+}
+
+void OWgpioOUT (void) {
+  GPIO_InitTypeDef GPIO_InitStruct;
+  // А8 попробуем
+  GPIO_InitStruct.GPIO_Pin = OWpin001;
+  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(OWport001, &GPIO_InitStruct);
+  GPIO_SetBits(OWport001, OWpin001); //          +++++++++++
+}
+void OWgpioIN (void) {
+  GPIO_InitTypeDef GPIO_InitStruct;
+  // А8 попробуем
+  GPIO_InitStruct.GPIO_Pin = OWpin001;
+  GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(OWport001, &GPIO_InitStruct);
 }
