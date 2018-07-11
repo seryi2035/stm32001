@@ -886,15 +886,17 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
   TIM4->CNT = 0;
 
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) ;
-  if(TIM4->CNT > 100)
-    return DHT11_ERROR_TIMEOUT;
+  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)){
+      if(TIM4->CNT > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
   //should be HIGH for at least 80us
   //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
   TIM4->CNT = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  if(TIM4->CNT > 100)
-    return DHT11_ERROR_TIMEOUT;
+  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+      if(TIM4->CNT > 100)
+        return DHT11_ERROR_TIMEOUT;
+    }
   //Read 40 bits (8*5)
   for(j = 0; j < 5; ++j) {
       for(i = 0; i < 8; ++i) {
