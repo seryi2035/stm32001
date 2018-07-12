@@ -115,20 +115,22 @@ void clear_RXBuffer(void) {
   RXi = 0;
 }
 void USART1Send(char *pucBuffer) {
-  GPIO_SetBits(GPIOA, GPIO_Pin_11);
-  //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
-  delay_ms(2);
   while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
       while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
         {
         }
     }
+}
+void USART1Send485(char *pucBuffer) {
+  GPIO_SetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  delay_ms(2);
+  USART1Send(*pucBuffer);
   delay_ms(2);
   //GPIO_SetBits(GPIOA, GPIO_Pin_11);
   GPIO_ResetBits(GPIOA, GPIO_Pin_11);
 }
-
 unsigned char RTC_Init(void) {
   // Включить тактирование модулей управления питанием и управлением резервной областью
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
@@ -360,7 +362,7 @@ void schitatTemp(char* imya) {
     vvhex(imya[i]);
   USARTSend("\n\r");
   int temp = convT_DS18B20(buf[0], buf[1]);
-  sprintf(cifry, "termperature :%d.%d\r\n", temp, (int) (0.0625*1000)*(buf[0] % 16));
+  sprintf(cifry, "termperature :%d.%d\r\n", temp, (int) ((125*(buf[0] % 16))/2 + buf[0] % 2));
   USARTSend(cifry);
   //sprintf(cifry, ".%d\r\n", (int) (0.0625*1000)*(buf[0] % 16));
   //USARTSend(cifry);
@@ -379,7 +381,7 @@ void vvhex(char vv) {
 }
 //ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
 
-void usart3_init(void) {
+/*void usart3_init(void) {
   //USART 3 and GPIO B 10 11 ON
   RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3 | RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -431,8 +433,8 @@ void usart3_init(void) {
 
   GPIO_ResetBits(GPIOB, GPIO_Pin_1);
   GPIO_SetBits(GPIOB, GPIO_Pin_0);
-}
-void USART3_IRQHandler(void) {
+}*/
+/*void USART3_IRQHandler(void) {
   if ((USART3->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART3);
       RX_BUF[RXi] = RXc;
@@ -448,7 +450,7 @@ void USART3_IRQHandler(void) {
       //Echo
       USART_SendData(USART3, RXc);
     }
-}
+}*/
 
 /*void USART3_IRQHandler(void)
 {
@@ -485,7 +487,7 @@ void USART3_IRQHandler(void) {
         }
     }
 }*/
-void USART3Send(char *pucBuffer) {
+/*void USART3Send(char *pucBuffer) {
   //for RS 485;
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);
   GPIO_ResetBits(GPIOB, GPIO_Pin_0);
@@ -508,7 +510,7 @@ void USART3Send(char *pucBuffer) {
   GPIO_SetBits(GPIOB, GPIO_Pin_0);
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);
   //delay_ms(500);
-}
+}*/
 void sendaddrow (void) {
   for(int i=0; i < RX_BUF_SIZE && i < 20;i++) {
       if (RX_BUF[i] != 0) {
@@ -799,7 +801,7 @@ void oprosite(void) {
   delay_ms(100);
   //USARTSend("oprosheno\n\r");
 }
-void net_tx3(UART_DATA *uart)
+/*void net_tx3(UART_DATA *uart)
 {
   if((uart->txlen>0)&(uart->txcnt==0))
     {
@@ -812,7 +814,7 @@ void net_tx3(UART_DATA *uart)
       USART_SendData(USART3, uart->buffer[uart->txcnt++]);
     }
 
-}
+}*/
 void net_tx1(UART_DATA *uart)
 {
   if((uart->txlen>0)&(uart->txcnt==0))

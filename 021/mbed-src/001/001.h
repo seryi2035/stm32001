@@ -37,6 +37,7 @@ void usart1_init(void);
 void USART1_IRQHandler(void);
 void clear_RXBuffer(void);
 void USART1Send(char *pucBuffer);
+void USART1Send485(char *pucBuffer);
 unsigned char RTC_Init(void);
 void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStruct);
 uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct);
@@ -45,9 +46,9 @@ char get_ab_xFF(int a);
 u8 convT_DS18B20(u8 LSB, u8 MSB);
 void schitatTemp(char* imya);
 void vvhex(char vv);
-void usart3_init(void);
-void USART3_IRQHandler(void);
-void USART3Send(char *pucBuffer);
+//void usart3_init(void);
+//void USART3_IRQHandler(void);
+//void USART3Send(char *pucBuffer);
 void sendaddrow (void);
 
 #define USARTSend USART1Send
@@ -88,7 +89,7 @@ float schitatfTemp(char* imya);
 int schitatiTemp(char* imya);
 void TX_66(UART_DATA *MODBUS);
 void oprosite (void);
-void net_tx3(UART_DATA *uart);
+//void net_tx3(UART_DATA *uart);
 void net_tx1(UART_DATA *uart);
 
 #define DHT11_SUCCESS         1

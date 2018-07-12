@@ -23,7 +23,7 @@ int main(void)
   TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
   TIM4_init(); // мкс 0-49999 TIM4->CNT
   usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485
-  usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
+  //usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
   OW_Init(); //usart2 А2 А3  или А8
   dev001.port = GPIOA;
   dev001.pin = GPIO_Pin_12;
@@ -54,12 +54,6 @@ int main(void)
   //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
       IWDG_ReloadCounter();
-      /*if(uart3.rxgap==1)
-        {
-          MODBUS_SLAVE(&uart3);
-          net_tx3(&uart3);
-        }
-*/
       /*if(uart1.rxgap==1)
         {
           MODBUS_SLAVE(&uart1);
@@ -73,9 +67,6 @@ int main(void)
           USARTSend("\n\rI has received a line:\n\r");
           USARTSend(RX_BUF);
           USARTSend("\n\r");
-          /*USART3Send("\n\rI has received a line:\n\r");
-          USART3Send(RX_BUF);
-          USART3Send("\n\r");*/
 
           if (strncmp(RX_BUF, "ON\r", 3) == 0 || strncmp(RX_BUF, "on\r", 3) == 0) {
               USARTSend("\n\r THIS IS A COMMAND \"ON\"!!!\n\r");
