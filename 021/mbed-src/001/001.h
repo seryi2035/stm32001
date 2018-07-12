@@ -51,7 +51,7 @@ void vvhex(char vv);
 //void USART3Send(char *pucBuffer);
 void sendaddrow (void);
 
-#define USARTSend USART1Send
+#define USARTSend USART1Send485
 //MODBUS
 //#include "modbus.h"
 #define OBJ_SZ 123 //это количество объектов

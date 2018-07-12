@@ -126,7 +126,7 @@ void USART1Send485(char *pucBuffer) {
   GPIO_SetBits(GPIOA, GPIO_Pin_11);
   //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
   delay_ms(2);
-  USART1Send(*pucBuffer);
+  USART1Send(pucBuffer);
   delay_ms(2);
   //GPIO_SetBits(GPIOA, GPIO_Pin_11);
   GPIO_ResetBits(GPIOA, GPIO_Pin_11);
