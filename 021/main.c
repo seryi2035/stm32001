@@ -18,6 +18,7 @@ int main(void)
 {
   //uint32_t RTC_Counter01 = 0;
   RTC_DateTimeTypeDef RTC_DateTime;
+  SET_PAR[SETUP] = {10, 20, 1, 247}; //адрес этого устройства 10 (modbus) 10
 
   GETonGPIO(); //led C13 A6 A7
   TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
@@ -57,6 +58,15 @@ int main(void)
         {
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
+        }
+      if ((RTC_GetCounter() % 10) == 0) {
+          oprosite ();
+          //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+          res_ftable[1] = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          res_ftable[2] = schitatfTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          //res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+          res_table[3] = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          res_table[4] = schitatiTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
         }
       /* if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line

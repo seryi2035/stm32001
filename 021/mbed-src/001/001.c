@@ -685,22 +685,22 @@ void TX_03_04(UART_DATA *MODBUS)
             {
               //пакуем отрицательное
               tmp_val_pos=tmp_val;
-              MODBUS->buffer[n]=(unsigned char) (tmp_val_pos>>8)|0b10000000;
-              MODBUS->buffer[n+1]=(unsigned char) tmp_val_pos;
+              MODBUS->buffer[n]=(uint8_t) (tmp_val_pos>>8)|0b10000000;
+              MODBUS->buffer[n+1]=(uint8_t) tmp_val_pos;
             }
           else
             {
               //пакуем положительное
-              MODBUS->buffer[n]=(unsigned char) (tmp_val>>8);
-              MODBUS->buffer[n+1]=(unsigned char) tmp_val;
+              MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
+              MODBUS->buffer[n+1]=(uint8_t) tmp_val;
             }
           n=n+2;
         }
 
       //запишем длину переменных пакета в байтах и вставим всообщение
-      MODBUS->buffer[2]=(unsigned char) (m*2); //byte count
+      MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
       //подготовим к отправке
-      MODBUS->txlen=(unsigned char) (m*2+5); //responce length
+      MODBUS->txlen=(uint8_t) (m*2+5); //responce length
 
     }
   else

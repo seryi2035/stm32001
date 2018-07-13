@@ -3,7 +3,7 @@ seryi@hpdebian-01:~/003/git/stm32001$
 ssh 192.168.0.4 -p 35282
 cd ~/kodim/git/stm32001/stm32001/
 cd ~/003/git/stm32001
-
+cd /etc/openhab2/
 
 apt-get install git-core
 apt-get install git-gui

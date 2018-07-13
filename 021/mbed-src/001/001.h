@@ -59,7 +59,7 @@ void sendaddrow (void);
 #define OBJ_SZ 123 //это количество объектов
 #define SETUP 4 //это просто количество данных в массиве 0-элемент которого означает адрес
 //PARAMETERRS ARRAY 0 PARAMETER = MODBUS ADDRESS
-unsigned char SET_PAR[SETUP];//0-элемент это адрес
+uint8_t SET_PAR[SETUP];//0-элемент это адрес
 //OBJECT ARRAY WHERE READING AND WRITING OCCURS
 int res_table[OBJ_SZ];//массив с объектами то откуда мы читаем и куда пишем
 float res_ftable[OBJ_SZ];
