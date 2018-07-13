@@ -1,6 +1,7 @@
 #include "tim2_delay.h"
 #include "001.h"
-volatile uint8_t f_timer_2_end;
+#include "libmodbus.h"
+//volatile uint8_t f_timer_2_end;
 
 void TIM2_init(void)
 {
