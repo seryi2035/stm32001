@@ -1,5 +1,5 @@
 #include "tim2_delay.h"
-
+#include "001.h"
 volatile uint8_t f_timer_2_end;
 
 void TIM2_init(void)
@@ -93,8 +93,8 @@ void TIM4_init(void)
   // NVIC Configuration
   // Enable the TIM4_IRQn Interrupt
   NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
   //и так есть основной void TIM2_init(void);
@@ -105,5 +105,40 @@ void TIM4_IRQHandler(void)
     {
       TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
       //TimeSec++;
+    }
+}
+
+void TIM3_init(void)
+{
+  TIM_TimeBaseInitTypeDef TIMER_InitStructure;
+  NVIC_InitTypeDef  NVIC_InitStructure;
+
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+  TIM_TimeBaseStructInit(&TIMER_InitStructure);
+
+  TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIMER_InitStructure.TIM_Prescaler = 72;
+  TIMER_InitStructure.TIM_Period = 1000;
+  TIM_TimeBaseInit(TIM3, &TIMER_InitStructure);
+  TIM_Cmd(TIM3, ENABLE);
+
+  NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+
+  // ñ÷èòàåì îäèí ðàç
+  TIM_SelectOnePulseMode(TIM3, TIM_OPMode_Single);
+}
+void TIM3_IRQHandler(void) {
+  TIM_ClearITPendingBit(TIM3, TIM_IT_Update);//очищаем прерывания
+  //если наш таймер больше уставки задержки и есть символы то есть gap -перерыв в посылке
+  //и можно ее обрабатывать
+  if((uart1.rxtimer++>uart1.delay)&(uart1.rxcnt>1)) {
+      uart1.rxgap=1;
+    }
+  else {
+      uart1.rxgap=0;
     }
 }

@@ -16,7 +16,7 @@ char cifry[10];
 
 int main(void)
 {
-  uint32_t RTC_Counter = 0;
+  //uint32_t RTC_Counter01 = 0;
   RTC_DateTimeTypeDef RTC_DateTime;
 
   GETonGPIO(); //led C13 A6 A7
@@ -31,36 +31,34 @@ int main(void)
   dev001.temparature = 0;
   DHT11_init(&dev001, dev001.port, dev001.pin);
   //wwdgenable();
-
   //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
   //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+  uart1.delay=3; //modbus gap 9600
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 11;
+      RTC_DateTime.RTC_Date = 13;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 1;
+      RTC_DateTime.RTC_Hours = 2;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
-
     }
   iwdg_init();
-  USARTSend("\n\rREADY!!!\n\r");
+  //USARTSend("\n\rREADY!!!\n\r");
   //USART3Send("\n\rREADY!!!\n\r");
   while (1) {
       IWDG_ReloadCounter();
-      /*if(uart1.rxgap==1)
+      if(uart1.rxgap==1)
         {
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
-        }*/
-
-      if (RX_FLAG_END_LINE == 1) {
+        }
+      /* if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line
           RX_FLAG_END_LINE = 0;
 
@@ -79,10 +77,10 @@ int main(void)
               GPIO_SetBits(GPIOC, GPIO_Pin_13); //OFF
             }
           if (strncmp(RX_BUF, "T\r", 1) == 0 || strncmp(RX_BUF, "t\r", 4) == 0) {
-              RTC_Counter = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter);
+              RTC_Counter01 = RTC_GetCounter();
+              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter01);
               USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter, &RTC_DateTime);
+              RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
               sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
                       (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
                       (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
@@ -152,7 +150,6 @@ int main(void)
               delay_ms(100);
             }
           clear_RXBuffer();
-        }
-
+        }*/
     }
 }

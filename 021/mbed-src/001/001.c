@@ -45,7 +45,7 @@ void GETonGPIO() {
 }
 
 void usart1_init(void) {
-  //USART 1 and GPIO A 9 10 ON
+  //USART 1 and GPIO A 9 10 ON A11pp
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
 
   //NVIC
@@ -70,10 +70,10 @@ void usart1_init(void) {
   //GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
   // A11 PP
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+  GPIO_InitStructure.GPIO_Pin = USART1PPpin;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  GPIO_Init(USART1PPport, &GPIO_InitStructure);
   //  USART 1
   USART_InitTypeDef USART_InitStructure;
 
@@ -89,11 +89,11 @@ void usart1_init(void) {
 
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
   //GDN on A11
-  //GPIO_SetBits(GPIOA, GPIO_Pin_11);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_SetBits(USART1PPport, USART1PPpin);
+  GPIO_ResetBits(USART1PPport, USART1PPpin);
 }
 void USART1_IRQHandler(void) {
-  if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
+  /*if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART1);
       RX_BUF[RXi] = RXc;
       RXi++;
@@ -107,6 +107,30 @@ void USART1_IRQHandler(void) {
         }
       //Echo
       USART_SendData(USART1,(u16) RXc);
+    }*/
+  //Receive Data register not empty interrupt
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  {
+      USART_ClearITPendingBit(USART1, USART_IT_RXNE); //очистка признака прерывания
+      uart1.rxtimer = 0;
+      if(uart1.rxcnt > (BUF_SZ-2)) {
+          uart1.rxcnt=0;
+        }
+      uart1.buffer[uart1.rxcnt++]=USART_ReceiveData (USART1);
+    }
+  //Transmission complete interrupt
+  if(USART_GetITStatus(USART1, USART_IT_TC) != RESET)  {
+      USART_ClearITPendingBit(USART1, USART_IT_TC);//очистка признака прерывания
+      if(uart1.txcnt<uart1.txlen)  {
+          USART_SendData(USART1,uart1.buffer[uart1.txcnt++]);//Передаем
+        }
+      else {
+          //посылка закончилась и мы снимаем высокий уровень сRS485 TXE
+          uart1.txlen=0;
+          GPIO_WriteBit(USART1PPport, USART1PPpin,Bit_RESET);
+          USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+          USART_ITConfig(USART1, USART_IT_TC, DISABLE);
+          TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
+        }
     }
 }
 void clear_RXBuffer(void) {
@@ -123,13 +147,13 @@ void USART1Send(char *pucBuffer) {
     }
 }
 void USART1Send485(char *pucBuffer) {
-  GPIO_SetBits(GPIOA, GPIO_Pin_11);
-  //GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  GPIO_SetBits(USART1PPport, USART1PPpin);
+  //GPIO_ResetBits(USART1PPport, USART1PPpin);
   delay_ms(2);
   USART1Send(pucBuffer);
   delay_ms(2);
-  //GPIO_SetBits(GPIOA, GPIO_Pin_11);
-  GPIO_ResetBits(GPIOA, GPIO_Pin_11);
+  //GPIO_SetBits(USART1PPport, USART1PPpin);
+  GPIO_ResetBits(USART1PPport, USART1PPpin);
 }
 unsigned char RTC_Init(void) {
   // Включить тактирование модулей управления питанием и управлением резервной областью
@@ -158,8 +182,7 @@ unsigned char RTC_Init(void) {
   return 0;
 }
 
-//get cirrent date
-void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStruct) {
+void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStruct) { //get cirrent date
   unsigned long time;
   unsigned long t1, a, b, c, d, e, m;
   uint16_t year = 0;
@@ -207,8 +230,7 @@ void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStru
   RTC_DateTimeStruct->RTC_Seconds = sec;
   RTC_DateTimeStruct->RTC_Wday = wday;
 }
-// Convert Date to Counter
-uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct) {
+uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct) {  // Convert Date to Counter
   uint32_t a;
   uint32_t y;
   uint32_t m;
@@ -233,7 +255,6 @@ uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct) {
 
   return JDN;
 }
-
 void RTC_GetMyFormat(RTC_DateTimeTypeDef* RTC_DateTimeStruct, char *  buffer01) {
   const char WDAY0[] = "Monday";
   const char WDAY1[] = "Tuesday";
@@ -379,9 +400,8 @@ void vvhex(char vv) {
   ff[0] = get_ab_xFF(b);
   USARTSend(ff);
 }
-//ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
 
-/*void usart3_init(void) {
+/*void usart3_init(void) { //ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
   //USART 3 and GPIO B 10 11 ON
   RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3 | RCC_APB2Periph_GPIOB, ENABLE);
 
@@ -451,7 +471,6 @@ void vvhex(char vv) {
       USART_SendData(USART3, RXc);
     }
 }*/
-
 /*void USART3_IRQHandler(void)
 {
   //Receive Data register not empty interrupt
@@ -577,39 +596,28 @@ imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xf
 }
 */
 
-void MODBUS_SLAVE(UART_DATA *MODBUS)
-{
+void MODBUS_SLAVE(UART_DATA *MODBUS) {
   unsigned int tmp;
-
-
   //recive and checking rx query
-  if((MODBUS->buffer[0]!=0)&(MODBUS->rxcnt>5)& ((MODBUS->buffer[0]==SET_PAR[0])|(MODBUS->buffer[0]==255)))
-    {
+  if((MODBUS->buffer[0]!=0)&(MODBUS->rxcnt>5)& ((MODBUS->buffer[0]==SET_PAR[0])|(MODBUS->buffer[0]==255)))  {
       tmp=Crc16(MODBUS->buffer,MODBUS->rxcnt-2);
-
-      if((MODBUS->buffer[MODBUS->rxcnt-2]==(tmp&0x00FF)) & (MODBUS->buffer[MODBUS->rxcnt-1]==(tmp>>8)))
-        {
+      if((MODBUS->buffer[MODBUS->rxcnt-2]==(tmp&0x00FF)) & (MODBUS->buffer[MODBUS->rxcnt-1]==(tmp>>8)))  {
           //если мы сюда попали значит пакет наш и crc совпало - надо проверить поддерживаем ли мы такой запрос
-
           //choosing function
           switch(MODBUS->buffer[1])
             {
             case 3:
               TX_03_04(MODBUS);
               break;
-
             case 4:
               TX_03_04(MODBUS);
               break;
-
             case 6:
               TX_06(MODBUS);
               break;
-
             case 66:
               TX_66(MODBUS);
               break;
-
             default://если нет то выдаем ошибку
               //illegal operation
               TX_EXCEPTION(MODBUS,0x01);
@@ -620,33 +628,27 @@ void MODBUS_SLAVE(UART_DATA *MODBUS)
           MODBUS->buffer[MODBUS->txlen-2]=(unsigned char) tmp;
           MODBUS->buffer[MODBUS->txlen-1]=(unsigned char) (tmp>>8);
           MODBUS->txcnt=0;
-
         }
-
     }
   //сброс индикаторов окончания посылки
   MODBUS->rxgap=0;
   MODBUS->rxcnt=0;
   MODBUS->rxtimer=0xFFFF;
-
 }
-unsigned int Crc16(unsigned char *ptrByte, int byte_cnt)
-{
+unsigned int Crc16(unsigned char *ptrByte, int byte_cnt) {
   unsigned int w=0;
   char shift_cnt;
-
-  if(ptrByte)
-    {
+  if(ptrByte)  {
       w=0xffffU;
-      for(; byte_cnt>0; byte_cnt--)
-        {
+      for(; byte_cnt>0; byte_cnt--) {
           w=(unsigned int)((w/256U)*256U+((w%256U)^(*ptrByte++)));
-          for(shift_cnt=0; shift_cnt<8; shift_cnt++)
-            {
-              if((w&0x1)==1)
-                w=(unsigned int)((w>>1)^0xa001U);
-              else
-                w>>=1;
+          for(shift_cnt=0; shift_cnt<8; shift_cnt++) {
+              if((w&0x1)==1) {
+                  w=(unsigned int)((w>>1)^0xa001U);
+                }
+              else {
+                  w>>=1;
+                }
             }
         }
     }
@@ -819,12 +821,12 @@ void net_tx1(UART_DATA *uart)
 {
   if((uart->txlen>0)&(uart->txcnt==0))
     {
-      USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
-      USART_ITConfig(USART1, USART_IT_TC, ENABLE);
+      USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //выкл прерывание на прием
+      USART_ITConfig(USART1, USART_IT_TC, ENABLE); //включаем на окочание передачи
+      //включаем rs485 на передачу
+      GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
       USART_SendData(USART1, uart->buffer[uart->txcnt++]);
-      GPIO_WriteBit(GPIOB,GPIO_Pin_1,Bit_SET);
     }
-
 }
 // ////////////////////////////////////////////////////////DHT11
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {

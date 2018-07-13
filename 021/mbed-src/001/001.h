@@ -33,6 +33,8 @@ typedef struct
 } RTC_DateTimeTypeDef;
 
 void GETonGPIO(void);
+#define USART1PPport GPIOA
+#define USART1PPpin GPIO_Pin_11
 void usart1_init(void);
 void USART1_IRQHandler(void);
 void clear_RXBuffer(void);
@@ -67,18 +69,21 @@ float res_ftable[OBJ_SZ];
 //uart structure
 typedef struct
 {
-  unsigned char buffer[BUF_SZ];//буфер
-  unsigned int rxtimer;//этим мы считаем таймоут
-  unsigned char rxcnt; //количество принятых символов
-  unsigned char txcnt;//количество переданных символов
-  unsigned char txlen;//длина посылки на отправку
-  unsigned char rxgap;//окончание приема
-  unsigned char protocol;//тип протокола - здесь не используется
-  unsigned char delay;//задержка
-  char ddddddDOBAVKA[2];
+  uint8_t buffer[BUF_SZ];//буфер
+  uint16_t rxtimer;//этим мы считаем таймоут
+  uint8_t rxcnt; //количество принятых символов
+  uint8_t txcnt;//количество переданных символов
+  uint8_t txlen;//длина посылки на отправку
+  uint8_t volatile rxgap;//окончание приема
+  uint8_t protocol;//тип протокола - здесь не используется
+  uint8_t delay;//задержка
+  uint8_t ddddddDOBAVKA[2];
 } UART_DATA;
 UART_DATA uart3,uart1;//структуры для соответсвующих усартов
 void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
+//timer 0.0001sec one symbol on 9600 ~1ms
+//uart3.delay=30; //modbus gap 9600
+//uart3.delay=10; //modbus gap 38400
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
 unsigned int Crc16(unsigned char *ptrByte, int byte_cnt);
 void TX_03_04(UART_DATA *MODBUS);
