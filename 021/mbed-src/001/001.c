@@ -130,7 +130,7 @@ void USART1_IRQHandler(void) {
       //Echo
       USART_SendData(USART1,(u16) RXc);
     }*/
-  //Receive Data register not empty interrupt
+  /*//Receive Data register not empty interrupt
   if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  {
       USART_ClearITPendingBit(USART1, USART_IT_RXNE); //очистка признака прерывания
       uart1.rxtimer = 0;
@@ -155,7 +155,25 @@ void USART1_IRQHandler(void) {
           USART_ITConfig(USART1, USART_IT_TC, DISABLE);
           TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
         }
-    }
+    }*/
+    if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
+        uart1.rxtimer = 0;
+        if(uart1.rxcnt > (BUF_SZ-2)) {
+            uart1.rxcnt=0;
+          }
+        uart1.buffer[uart1.rxcnt++]=(u8) USART_ReceiveData (USART1);
+
+        RX_FLAG_END_LINE = 0;
+        if (RXc != 13) {
+            if (RXi > RX_BUF_SIZE - 1) {
+                clear_RXBuffer();
+              }
+          } else {
+            RX_FLAG_END_LINE = 1;
+          }
+        //Echo
+        USART_SendData(USART1,(u16) uart1.buffer[uart1.rxcnt]);
+      }
 }
 void clear_RXBuffer(void) {
   for (RXi = 0; RXi < RX_BUF_SIZE; RXi++)
