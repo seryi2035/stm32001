@@ -13,7 +13,7 @@
 #include "libmodbus.h"
 struct DHT11_Dev dev001;
 
-//char cifry[10];
+
 
 int main(void)
 {
@@ -23,6 +23,7 @@ int main(void)
 
     GETonGPIO(); //led C13 A6 A7
     TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
+    TIM3_init();
     TIM4_init(); // мкс 0-49999 TIM4->CNT
     usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485
     //usart3_init();//  B 10 PP TX DI //  B 11 жёлыйRX RO //B1 RE //B0DE ++шлет компу)
@@ -35,7 +36,7 @@ int main(void)
     //wwdgenable();
     //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
     //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
-    uart1.delay=3; //modbus gap 9600
+    uart1.delay=3000; //modbus gap 9600
     startCOILS(Coils_RW);
 
     if (RTC_Init() == 1) {
@@ -44,7 +45,7 @@ int main(void)
         RTC_DateTime.RTC_Month = 7;
         RTC_DateTime.RTC_Year = 2018;
 
-        RTC_DateTime.RTC_Hours = 8;
+        RTC_DateTime.RTC_Hours = 19;
         RTC_DateTime.RTC_Minutes = 49;
         RTC_DateTime.RTC_Seconds = 30;
         //После инициализации требуется задержка. Без нее время не устанавливается.

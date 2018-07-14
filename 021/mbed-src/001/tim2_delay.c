@@ -26,10 +26,8 @@ void TIM2_init(void)
   // ñ÷èòàåì îäèí ðàç
   TIM_SelectOnePulseMode(TIM2, TIM_OPMode_Single);
 }
-void TIM2_IRQHandler(void)
-{
-  if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
-    {
+void TIM2_IRQHandler(void) {
+  if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)   {
       TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
       //TimeSec++;
     }
@@ -133,13 +131,15 @@ void TIM3_init(void)
   TIM_SelectOnePulseMode(TIM3, TIM_OPMode_Single);
 }
 void TIM3_IRQHandler(void) {
-  TIM_ClearITPendingBit(TIM3, TIM_IT_Update);//очищаем прерывания
-  //если наш таймер больше уставки задержки и есть символы то есть gap -перерыв в посылке
-  //и можно ее обрабатывать
-  if((uart1.rxtimer++>uart1.delay)&(uart1.rxcnt>1)) {
-      uart1.rxgap=1;
-    }
-  else {
-      uart1.rxgap=0;
+  if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)   {
+      TIM_ClearITPendingBit(TIM3, TIM_IT_Update);//очищаем прерывания
+      //если наш таймер больше уставки задержки и есть символы то есть gap -перерыв в посылке
+      //и можно ее обрабатывать
+      if((uart1.rxtimer++ > uart1.delay)&(uart1.rxcnt > 1)) {
+          uart1.rxgap=1;
+        }
+      else {
+          uart1.rxgap=0;
+        }
     }
 }

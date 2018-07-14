@@ -19,8 +19,8 @@ typedef struct {
   uint8_t txlen;//длина посылки на отправку
   uint8_t volatile rxgap;//окончание приема
   uint8_t protocol;//тип протокола - здесь не используется
-  uint8_t delay;//задержка
-  uint8_t ddddddDOBAVKA[2];
+  uint16_t delay;//задержка
+  uint8_t ddddddDOBAVKA[1];
 } UART_DATA;
 UART_DATA uart1;//структуры для соответсвующих усартов
 void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
