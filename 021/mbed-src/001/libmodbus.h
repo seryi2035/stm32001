@@ -35,3 +35,5 @@ void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);
 void TX_66(UART_DATA *MODBUS);
 //void net_tx3(UART_DATA *uart);
 void net_tx1(UART_DATA *uart);
+void TX_01(UART_DATA *MODBUS);
+void TX_02(UART_DATA *MODBUS);

@@ -102,5 +102,6 @@ Deleted branch hotfix (3a0874c).
 git push origin serverfix
 git push origin serverfix:awesomebranch
 git checkout -b serverfix origin/serverfix
+git checkout --track origin/startmodbusTRY
 ########### переключение пуш(уемой) ветки
 git push --set-upstream origin delete_tresh

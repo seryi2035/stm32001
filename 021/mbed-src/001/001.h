@@ -73,3 +73,8 @@ void wwdgenable(void);
 void WWDG_IRQHandler(void);
 void iwdg_init(void);
 
+uint8_t Coils_RW[16];
+uint8_t Discrete_Inputs_RO[16];
+void setCOILS(uint8_t *Coils_RW);
+void read_Discrete_Inputs_RO(void);
+void startCOILS(uint8_t *Coils_RW);

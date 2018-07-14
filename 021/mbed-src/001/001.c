@@ -5,7 +5,7 @@
 #include "stdio.h"
 #include "libmodbus.h"
 
-void GETonGPIO() {
+void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
   GPIO_InitTypeDef GPIO_InitStructure;
   //LED C.13
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
@@ -26,23 +26,50 @@ void GETonGPIO() {
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-
-
-  //KNOPKA B0
-  /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-
+// ///////// 4 OUT B11 B10 B1 B0
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+  // B11 PP
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  //B 10 PP
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  // B1 PP
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  //B 0 PP
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  //KNOPKA B3 IPU
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-  //KNOPKA B1
+  //KNOPKA B4 IPU
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);*/
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+  //IPD B5
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 
 void usart1_init(void) {
@@ -616,170 +643,259 @@ int schitatiTemp(char* imya) {
   return ((int) convT_DS18B20(buf[0], buf[1]));
 }
 void oprosite(void) {
-  u8 comm[2];
-  comm[0] = 0xcc;
-  comm[1] = 0x44;
-  OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(100);
-  comm[1] = 0x4e;
-  OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(100);
-  //USARTSend("oprosheno\n\r");
+    u8 comm[2];
+    comm[0] = 0xcc;
+    comm[1] = 0x44;
+    OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
+    delay_ms(100);
+    comm[1] = 0x4e;
+    OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
+    delay_ms(100);
+    //USARTSend("oprosheno\n\r");
 }
 // ////////////////////////////////////////////////////////DHT11
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
-  GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
 
-  dev->port = port;
-  dev->pin = pin;
+    dev->port = port;
+    dev->pin = pin;
 
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-  //Initialise GPIO DHT11
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-  GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
-  return 0;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    //Initialise GPIO DHT11
+    GPIO_InitStructure.GPIO_Pin = dev->pin;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(dev->port, &GPIO_InitStructure);
+    GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
+    return 0;
 }
 int DHT11_read(struct DHT11_Dev* dev) {
-  dev->temparature = 0;
-  dev->humidity = 0;
-  //Initialisation
-  uint8_t i, j, temp;
-  //uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
-  uint8_t data[5] = {0, 0, 0, 0, 0};
-  GPIO_InitTypeDef GPIO_InitStructure;
+    dev->temparature = 0;
+    dev->humidity = 0;
+    //Initialisation
+    uint8_t i, j, temp;
+    //uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t data[5] = {0, 0, 0, 0, 0};
+    GPIO_InitTypeDef GPIO_InitStructure;
 
-  //Generate START condition
-  //o
-  GPIO_InitStructure.GPIO_Pin = dev->pin;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
+    //Generate START condition
+    //o
+    GPIO_InitStructure.GPIO_Pin = dev->pin;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    //GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(dev->port, &GPIO_InitStructure);
 
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
+    //dev->port->MODER |= GPIO_MODER_MODER6_0;
 
-  //Put LOW for at least 18ms
-  GPIO_ResetBits(dev->port, dev->pin);
+    //Put LOW for at least 18ms
+    GPIO_ResetBits(dev->port, dev->pin);
 
-  delay_ms(18);
-  //wait 18ms
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 18000);
+    delay_ms(18);
+    //wait 18ms
+    //TIM2->CNT = 0;
+    //while((TIM2->CNT) <= 18000);
 
-  //Put HIGH for 20-40us
-  GPIO_SetBits(dev->port, dev->pin);
+    //Put HIGH for 20-40us
+    GPIO_SetBits(dev->port, dev->pin);
 
-  delay_us(40);
-  //wait 40us
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 40);
-  //End start condition
+    delay_us(40);
+    //wait 40us
+    //TIM2->CNT = 0;
+    //while((TIM2->CNT) <= 40);
+    //End start condition
 
-  //io();
-  //Input mode to receive data
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_Init(dev->port, &GPIO_InitStructure);
-  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM4->CNT = 0;
+    //io();
+    //Input mode to receive data
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_Init(dev->port, &GPIO_InitStructure);
+    //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
+    //DHT11 ACK
+    //should be LOW for at least 80us
+    //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+    TIM4->CNT = 0;
 
-  while(!GPIO_ReadInputDataBit(dev->port, dev->pin)){
-      if(TIM4->CNT > 100)
-        return DHT11_ERROR_TIMEOUT;
+    while(!GPIO_ReadInputDataBit(dev->port, dev->pin)){
+        if(TIM4->CNT > 100)
+            return DHT11_ERROR_TIMEOUT;
     }
-  //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM4->CNT = 0;
-  while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
-      if(TIM4->CNT > 100)
-        return DHT11_ERROR_TIMEOUT;
+    //should be HIGH for at least 80us
+    //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
+    TIM4->CNT = 0;
+    while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+        if(TIM4->CNT > 100)
+            return DHT11_ERROR_TIMEOUT;
     }
-  //Read 40 bits (8*5)
-  for(j = 0; j < 5; ++j) {
-      for(i = 0; i < 8; ++i) {
-          TIM4->CNT = 0;
-          //LOW for 50us
-          while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
+    //Read 40 bits (8*5)
+    for(j = 0; j < 5; ++j) {
+        for(i = 0; i < 8; ++i) {
+            TIM4->CNT = 0;
+            //LOW for 50us
+            while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
 
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+            /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 60)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
-          //Start counter
-          TIM4->CNT = 0;
-          //HIGH for 26-28us = 0 / 70us = 1
-          while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {      }
-          /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
+            //Start counter
+            TIM4->CNT = 0;
+            //HIGH for 26-28us = 0 / 70us = 1
+            while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {      }
+            /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 100)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
 
-          //Calc amount of time passed
-          temp = TIM4->CNT;
+            //Calc amount of time passed
+            temp = TIM4->CNT;
 
-          //shift 0
-          data[j] = data[j] << 1;
+            //shift 0
+            data[j] = data[j] << 1;
 
-          //if > 30us it's 1
-          if(temp > 40) {
-              data[j] = data[j]+1;
+            //if > 30us it's 1
+            if(temp > 40) {
+                data[j] = data[j]+1;
             }
 
         }
     }
 
-  //verify the Checksum
-  if(data[4] != (u8) (data[0] + data[2] + data[1] + data[3]))
-    return DHT11_ERROR_CHECKSUM;
-  //set data
-  dev->temparature = data[2];
-  dev->humidity = data[0];
-  return DHT11_SUCCESS;
+    //verify the Checksum
+    if(data[4] != (u8) (data[0] + data[2] + data[1] + data[3]))
+        return DHT11_ERROR_CHECKSUM;
+    //set data
+    dev->temparature = data[2];
+    dev->humidity = data[0];
+    return DHT11_SUCCESS;
 }
 
 void wwdgenable(void){
-  // Enable Watchdog
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG,ENABLE);
-  WWDG_DeInit();
-  WWDG_SetPrescaler(WWDG_Prescaler_8); //1, 2, 4, 8
-  WWDG_SetWindowValue(127); // 64...127
-  WWDG_Enable(100);
-  WWDG_EnableIT();
+    // Enable Watchdog
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG,ENABLE);
+    WWDG_DeInit();
+    WWDG_SetPrescaler(WWDG_Prescaler_8); //1, 2, 4, 8
+    WWDG_SetWindowValue(127); // 64...127
+    WWDG_Enable(100);
+    WWDG_EnableIT();
 
-  NVIC_InitTypeDef NVIC_InitStructure;
-  NVIC_InitStructure.NVIC_IRQChannel = WWDG_IRQn;    //WWDG interrupt
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);   // NVIC initialization
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = WWDG_IRQn;    //WWDG interrupt
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);   // NVIC initialization
 }
 void WWDG_IRQHandler(void) {
-  //int i;
-  WWDG_ClearFlag(); //This function reset flag WWDG->SR and cancel the resetting
-  WWDG_SetCounter(100);
+    //int i;
+    WWDG_ClearFlag(); //This function reset flag WWDG->SR and cancel the resetting
+    WWDG_SetCounter(100);
 
-  // Toggle LED which connected to PC13
-  GPIOC->ODR ^= GPIO_Pin_13;
+    // Toggle LED which connected to PC13
+    GPIOC->ODR ^= GPIO_Pin_13;
 }
 void iwdg_init(void) {
-  // включаем LSI
-  RCC_LSICmd(ENABLE);
-  while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
-  // разрешается доступ к регистрам IWDG
-  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-  // устанавливаем предделитель
-  IWDG_SetPrescaler(IWDG_Prescaler_256);
-  // значение для перезагрузки
-  IWDG_SetReload(0x300); //256/40000*0x300=4.9152
-  // перезагрузим значение
-  IWDG_ReloadCounter();
-  // LSI должен быть включен
-  IWDG_Enable();
+    // включаем LSI
+    RCC_LSICmd(ENABLE);
+    while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
+    // разрешается доступ к регистрам IWDG
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    // устанавливаем предделитель
+    IWDG_SetPrescaler(IWDG_Prescaler_256);
+    // значение для перезагрузки
+    IWDG_SetReload(0x300); //256/40000*0x300=4.9152
+    // перезагрузим значение
+    IWDG_ReloadCounter();
+    // LSI должен быть включен
+    IWDG_Enable();
+}
+
+void setCOILS(uint8_t *Coils_RW) {
+    if (Coils_RW[0]) {
+        GPIO_ResetBits(GPIOC, GPIO_Pin_13); //ON
+        //Discrete_Inputs_RO[0] = 1;
+    } else {
+        GPIO_SetBits(GPIOC, GPIO_Pin_13);  //OFF
+        //Discrete_Inputs_RO[0] = 0;
+    }
+    if (Coils_RW[1]) {
+        GPIO_SetBits(GPIOB, GPIO_Pin_11); //+
+        //Discrete_Inputs_RO[0] = 1;
+    } else {
+        GPIO_ResetBits(GPIOB, GPIO_Pin_11);  //-
+        //Discrete_Inputs_RO[0] = 0;
+    }
+    if (Coils_RW[2]) {
+        GPIO_SetBits(GPIOB, GPIO_Pin_10); //+
+        //Discrete_Inputs_RO[0] = 1;
+    } else {
+        GPIO_ResetBits(GPIOB, GPIO_Pin_10);  //-
+        //Discrete_Inputs_RO[0] = 0;
+    }
+    if (Coils_RW[3]) {
+        GPIO_SetBits(GPIOB, GPIO_Pin_1); //+
+        //Discrete_Inputs_RO[0] = 1;
+    } else {
+        GPIO_ResetBits(GPIOB, GPIO_Pin_1);  //-
+        //Discrete_Inputs_RO[0] = 0;
+    }
+    if (Coils_RW[4]) {
+        GPIO_SetBits(GPIOB, GPIO_Pin_0); //+
+        //Discrete_Inputs_RO[0] = 1;
+    } else {
+        GPIO_ResetBits(GPIOB, GPIO_Pin_0);  //-
+        //Discrete_Inputs_RO[0] = 0;
+    }
+}
+void read_Discrete_Inputs_RO(void) {
+    for(u8 i = 9; i < 16; i++) {
+        Discrete_Inputs_RO[i] = Coils_RW[i-9];
+    }
+    Discrete_Inputs_RO[8] = Coils_RW[7];
+    if (GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)) {
+        Discrete_Inputs_RO[0] = 1;
+    } else {
+        Discrete_Inputs_RO[0] = 0;
+    }
+    //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[1] = 1 : Discrete_Inputs_RO[1] = 0;
+    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11)) {
+        Discrete_Inputs_RO[1] = 1;
+    } else {
+        Discrete_Inputs_RO[1] = 0;
+    }
+    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10)) { Discrete_Inputs_RO[2] = 1; } else { Discrete_Inputs_RO[2] = 0; }
+    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1)) {
+        Discrete_Inputs_RO[3] = 1;
+    } else {
+        Discrete_Inputs_RO[3] = 0;
+    }
+    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)) {
+        Discrete_Inputs_RO[4] = 1;
+    } else {
+        Discrete_Inputs_RO[4] = 0;
+    }
+    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3)) {
+        Discrete_Inputs_RO[5] = 1;
+    } else {
+        Discrete_Inputs_RO[5] = 0;
+    }
+    //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
+    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)) {
+        Discrete_Inputs_RO[6] = 1;
+    } else {
+        Discrete_Inputs_RO[6] = 0;
+    }
+    //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
+    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5)) {
+        Discrete_Inputs_RO[7] = 1;
+    } else {
+        Discrete_Inputs_RO[7] = 0;
+    }
+
+}
+void startCOILS(uint8_t *Coils_RW) {
+    for(u8 i = 0; i < 16; i++) {
+        Coils_RW[i] = 0;
+    }
 }

@@ -13,7 +13,7 @@
 #include "libmodbus.h"
 struct DHT11_Dev dev001;
 
-char cifry[10];
+//char cifry[10];
 
 int main(void)
 {
@@ -36,6 +36,7 @@ int main(void)
     //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
     //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
     uart1.delay=3; //modbus gap 9600
+    startCOILS(Coils_RW);
 
     if (RTC_Init() == 1) {
         // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
