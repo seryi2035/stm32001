@@ -71,20 +71,15 @@ void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
-
-void usart1_init(void) {
-  //USART 1 and GPIO A 9 10 ON A11pp
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
-
+void usart1_init(void) { //USART 1 and GPIO A (9/10/11) ON A11pp
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
   //NVIC
   NVIC_InitTypeDef NVIC_InitStructure;
-  //
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
-
   //GPIO
   GPIO_InitTypeDef GPIO_InitStructure;
   //  A 9 TX
@@ -114,7 +109,6 @@ void usart1_init(void) {
   USART_Init (USART1, &USART_InitStructure);
 
   USART_Cmd(USART1, ENABLE);
-
   USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
   //GDN on A11
   //GPIO_SetBits(USART1PPport, USART1PPpin);
@@ -148,7 +142,9 @@ void USART1_IRQHandler(void) {
   //Transmission complete interrupt
   if(USART_GetITStatus(USART1, USART_IT_TC) != RESET)  {
       USART_ClearITPendingBit(USART1, USART_IT_TC);//очистка признака прерывания
+
       if(uart1.txcnt<uart1.txlen)  {
+          GPIO_SetBits(USART1PPport, USART1PPpin);  // +++++++++++++++++ключаем 485
           USART_SendData(USART1,uart1.buffer[uart1.txcnt++]);//Передаем
         }
       else {

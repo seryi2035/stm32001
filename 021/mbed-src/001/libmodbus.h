@@ -28,7 +28,7 @@ void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки мод�
 //uart3.delay=30; //modbus gap 9600
 //uart3.delay=10; //modbus gap 38400
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
-unsigned int Crc16(unsigned char *ptrByte, int byte_cnt);
+uint32_t Crc16(unsigned char *ptrByte, int byte_cnt);
 void TX_03_04(UART_DATA *MODBUS);
 void TX_06(UART_DATA *MODBUS);
 void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);

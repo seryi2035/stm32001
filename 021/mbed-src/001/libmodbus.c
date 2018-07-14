@@ -4,7 +4,7 @@
 #include "libmodbus.h"
 
 void MODBUS_SLAVE(UART_DATA *MODBUS) {
-    unsigned int tmp;
+    uint32_t tmp;
     //recive and checking rx query
     if((MODBUS->buffer[0]!=0)&(MODBUS->rxcnt>5)& ((MODBUS->buffer[0]==SET_PAR[0])|(MODBUS->buffer[0]==255)))  {
         tmp=Crc16(MODBUS->buffer,MODBUS->rxcnt-2);
@@ -38,8 +38,8 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
             //добавляем CRC и готовим к отсылке
             //adding CRC16 to reply
             tmp=Crc16(MODBUS->buffer,MODBUS->txlen-2);
-            MODBUS->buffer[MODBUS->txlen-2]=(unsigned char) tmp;
-            MODBUS->buffer[MODBUS->txlen-1]=(unsigned char) (tmp>>8);
+            MODBUS->buffer[MODBUS->txlen-2]=(uint8_t) tmp;
+            MODBUS->buffer[MODBUS->txlen-1]=(uint8_t) (tmp>>8);
             MODBUS->txcnt=0;
         }
     }
@@ -48,16 +48,16 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
     MODBUS->rxcnt=0;
     MODBUS->rxtimer=0xFFFF;
 }
-unsigned int Crc16(unsigned char *ptrByte, int byte_cnt) {
-    unsigned int w=0;
+uint32_t Crc16(uint8_t *ptrByte, int byte_cnt) {
+    uint32_t w=0;
     char shift_cnt;
     if(ptrByte)  {
         w=0xffffU;
         for(; byte_cnt>0; byte_cnt--) {
-            w=(unsigned int)((w/256U)*256U+((w%256U)^(*ptrByte++)));
+            w=(uint32_t)((w/256U)*256U+((w%256U)^(*ptrByte++)));
             for(shift_cnt=0; shift_cnt<8; shift_cnt++) {
                 if((w&0x1)==1) {
-                    w=(unsigned int)((w>>1)^0xa001U);
+                    w=(uint32_t)((w>>1)^0xa001U);
                 }
                 else {
                     w>>=1;
@@ -69,8 +69,8 @@ unsigned int Crc16(unsigned char *ptrByte, int byte_cnt) {
 }
 void TX_03_04(UART_DATA *MODBUS)
 {
-    unsigned int tmp,tmp1;
-    unsigned int m=0,n=0;
+    uint32_t tmp,tmp1;
+    uint32_t m=0,n=0;
     int tmp_val,tmp_val_pos;
 
     //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
@@ -78,10 +78,10 @@ void TX_03_04(UART_DATA *MODBUS)
     //MODBUS->buffer[2] = data byte count
 
     //2-3  - starting address
-    tmp=(unsigned int)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+    tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
 
     //4-5 - number of registers
-    tmp1=(unsigned int)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+    tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
 
     //default answer length if error
     n=3;
@@ -125,14 +125,14 @@ void TX_03_04(UART_DATA *MODBUS)
 }
 void TX_06(UART_DATA *MODBUS)
 {
-    unsigned int tmp;
+    uint32_t tmp;
 
     //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
     //MODBUS[1] = 6; //query type - - stay a same as in recived
 
     //2-3  - adress   , 4-5 - value
 
-    tmp=(unsigned int)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
+    tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
 
     //MODBUS->buffer[2]  - byte count a same as in rx query
 
@@ -163,14 +163,14 @@ void TX_66(UART_DATA *MODBUS)
     res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
     res_table[4] = schitatiTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
 
-    unsigned int tmp;
+    uint32_t tmp;
 
     //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
     //MODBUS[1] = 6; //query type - - stay a same as in recived
 
     //2-3  - adress   , 4-5 - value
 
-    tmp=(unsigned int) ((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
+    tmp=(uint32_t) ((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
 
     //MODBUS->buffer[2]  - byte count a same as in rx query
 
@@ -212,8 +212,8 @@ void net_tx1(UART_DATA *uart)
     }
 }
 void TX_01(UART_DATA *MODBUS) {
-    unsigned int tmp,tmp1;
-    unsigned int m=0,n=0;
+    uint32_t tmp,tmp1;
+    uint32_t m=0,n=0;
     int tmp_val;
     u16 tmp_val_pos = 0, tmp001 = 0, tmp002;
 
@@ -222,10 +222,10 @@ void TX_01(UART_DATA *MODBUS) {
     //MODBUS->buffer[2] = data byte count
 
     //2-3  - starting address
-    tmp=(unsigned int)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+    tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
 
     //4-5 - number of registers
-    tmp1=(unsigned int)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+    tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
 
     //default answer length if error
     n=3;
@@ -267,8 +267,8 @@ void TX_01(UART_DATA *MODBUS) {
 }
 void TX_02(UART_DATA *MODBUS) {
     read_Discrete_Inputs_RO();
-    unsigned int tmp,tmp1;
-    unsigned int m=0,n=0;
+    uint32_t tmp,tmp1;
+    uint32_t m=0,n=0;
     int tmp_val;
     u16 tmp_val_pos = 0, tmp001 = 0, tmp002;
 
@@ -277,10 +277,10 @@ void TX_02(UART_DATA *MODBUS) {
     //MODBUS->buffer[2] = data byte count
 
     //2-3  - starting address
-    tmp=(unsigned int)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+    tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
 
     //4-5 - number of registers
-    tmp1=(unsigned int)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+    tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
 
     //default answer length if error
     n=3;
