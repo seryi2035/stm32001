@@ -40,11 +40,11 @@ int main(void)
 
     if (RTC_Init() == 1) {
         // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-        RTC_DateTime.RTC_Date = 13;
+        RTC_DateTime.RTC_Date = 14;
         RTC_DateTime.RTC_Month = 7;
         RTC_DateTime.RTC_Year = 2018;
 
-        RTC_DateTime.RTC_Hours = 2;
+        RTC_DateTime.RTC_Hours = 8;
         RTC_DateTime.RTC_Minutes = 49;
         RTC_DateTime.RTC_Seconds = 30;
         //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -61,7 +61,7 @@ int main(void)
             MODBUS_SLAVE(&uart1);
             net_tx1(&uart1);
         }
-        if ((RTC_GetCounter() % 10) == 0) {
+        /*if ((RTC_GetCounter() % 10) == 0) {
             oprosite ();
             //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
             res_ftable[1] = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
@@ -69,7 +69,7 @@ int main(void)
             //res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
             res_table[3] = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
             res_table[4] = schitatiTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-        }
+        }*/
         /* if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line
           RX_FLAG_END_LINE = 0;
