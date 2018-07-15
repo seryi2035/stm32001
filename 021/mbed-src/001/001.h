@@ -38,6 +38,7 @@ void GETonGPIO(void);
 void usart1_init(void);
 void USART1_IRQHandler(void);
 void clear_RXBuffer(void);
+void USART01Send(u8 *pucBuffer);
 void USART1Send(char *pucBuffer);
 void USART1Send485(char *pucBuffer);
 unsigned char RTC_Init(void);
@@ -71,7 +72,7 @@ void wwdgenable(void);
 void WWDG_IRQHandler(void);
 void iwdg_init(void);
 
-uint8_t Coils_RW[16];
+uint8_t Coils_RW[32];
 uint8_t Discrete_Inputs_RO[16];
 void setCOILS(uint8_t *Coils_RW);
 void read_Discrete_Inputs_RO(void);

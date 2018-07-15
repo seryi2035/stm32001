@@ -37,3 +37,4 @@ void TX_66(UART_DATA *MODBUS);
 void net_tx1(UART_DATA *uart);
 void TX_01(UART_DATA *MODBUS);
 void TX_02(UART_DATA *MODBUS);
+uint16_t crc16(uint8_t *buffer, uint16_t buffer_length);

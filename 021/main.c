@@ -16,9 +16,9 @@ struct DHT11_Dev dev001;
 
 int main(void)
 {
-    uint32_t RTC_Counter01 = 0;
+    /*uint32_t RTC_Counter01 = 0;
     uint32_t RTC_Counter02 = 0;
-    int res003;
+    int res003;*/
     RTC_DateTimeTypeDef RTC_DateTime;
     SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
 
@@ -36,7 +36,7 @@ int main(void)
     //wwdgenable();
     //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
     //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
-    uart1.delay=3; //modbus gap 9600
+    uart1.delay=800; //modbus gap 9600
     startCOILS(Coils_RW);
 
     if (RTC_Init() == 1) {
@@ -45,7 +45,7 @@ int main(void)
         RTC_DateTime.RTC_Month = 7;
         RTC_DateTime.RTC_Year = 2018;
 
-        RTC_DateTime.RTC_Hours = 0;
+        RTC_DateTime.RTC_Hours = 4;
         RTC_DateTime.RTC_Minutes = 49;
         RTC_DateTime.RTC_Seconds = 30;
         //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -53,18 +53,23 @@ int main(void)
         RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
     }
     iwdg_init();
-    sprintf(buffer, "\n\rREADY!!!%d\n\r", (int) RTC_GetCounter());
-    USARTSend(buffer);
+    //sprintf(buffer, "\n\rREADY!!!%d\n\r", (int) RTC_GetCounter());
+    //USARTSend(buffer);
     //USARTSend("\n\rREADY!!!\n\r");
     //USART3Send("\n\rREADY!!!\n\r");
     while (1) {
         IWDG_ReloadCounter();
-        if(uart1.rxgap==1)
-        {
+        if(uart1.rxgap==1) {
+            delay_ms(50);
+            GPIO_SetBits(USART1PPport, USART1PPpin);
             MODBUS_SLAVE(&uart1);
             net_tx1(&uart1);
+            delay_ms(50);
+            GPIO_ResetBits(USART1PPport, USART1PPpin);
+            //USARTSend("\n\rREADY!!!\n\r");
+            //delay_ms(50);*/
         }
-        if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
+        /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
             oprosite ();
             //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
@@ -110,7 +115,7 @@ int main(void)
               }
             //USARTSend(buffer);
             USARTSend(" end \n");
-          }
+          }*/
         /* if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line
           RX_FLAG_END_LINE = 0;

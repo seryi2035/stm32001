@@ -175,6 +175,14 @@ void clear_RXBuffer(void) {
     RX_BUF[RXi] = '\0';
   RXi = 0;
 }
+void USART01Send(u8 *pucBuffer) {
+  while (*pucBuffer) {
+      USART_SendData(USART1,(uint16_t) *pucBuffer++);
+      while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+        {
+        }
+    }
+}
 void USART1Send(char *pucBuffer) {
   while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
@@ -766,7 +774,7 @@ void read_Discrete_Inputs_RO(void) {
 
 }
 void startCOILS(uint8_t *Coils_RW) {
-  for(u8 i = 0; i < 16; i++) {
+  for(u8 i = 0; i < 32; i++) {
       Coils_RW[i] = 0;
     }
 }
