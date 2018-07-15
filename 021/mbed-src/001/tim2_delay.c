@@ -3,9 +3,9 @@
 //#include "libmodbus.h"
 #include "modbus.h"
 //volatile uint8_t f_timer_2_end;
+extern UART_DATA uart1;
 
-void TIM2_init(void)
-{
+void TIM2_init(void) {
   TIM_TimeBaseInitTypeDef TIMER_InitStructure;
   NVIC_InitTypeDef  NVIC_InitStructure;
 
@@ -23,7 +23,6 @@ void TIM2_init(void)
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
-
   // ñ÷èòàåì îäèí ðàç
   TIM_SelectOnePulseMode(TIM2, TIM_OPMode_Single);
 }
@@ -41,8 +40,7 @@ void TIM2_IRQHandler(void) {
   TIM_Cmd(TIM2, DISABLE);
   TIM_ITConfig(TIM2, TIM_IT_Update, DISABLE);*/
 }
-void delay_us(uint32_t n_usec)
-{
+void delay_us(uint32_t n_usec) {
   TIM4->CNT = 0;
   while (TIM4->CNT < n_usec);
   /*f_timer_2_end = 0;
@@ -60,8 +58,7 @@ void delay_us(uint32_t n_usec)
 
   while(f_timer_2_end == 0);*/
 }
-void delay_ms(uint32_t n_msec)
-{
+void delay_ms(uint32_t n_msec) {
   TIM2->CNT = 0;
   while (TIM2->CNT < (2 * n_msec)){}
   /*f_timer_2_end = 0;
@@ -76,8 +73,7 @@ void delay_ms(uint32_t n_msec)
   while(f_timer_2_end == 0);*/
 }
 
-void TIM4_init(void)
-{
+void TIM4_init(void) {
   TIM_TimeBaseInitTypeDef TIM_TimBaseStructure;
   NVIC_InitTypeDef  NVIC_InitStructure;
 
@@ -94,13 +90,12 @@ void TIM4_init(void)
   // Enable the TIM4_IRQn Interrupt
   NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
   //и так есть основной void TIM2_init(void);
 }
-void TIM4_IRQHandler(void)
-{
+void TIM4_IRQHandler(void) {
   if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
     {
       TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
@@ -108,35 +103,42 @@ void TIM4_IRQHandler(void)
     }
 }
 
-void TIM3_init(void)
-{
+void TIM3_init(void) {
   TIM_TimeBaseInitTypeDef TIMER_InitStructure;
   NVIC_InitTypeDef  NVIC_InitStructure;
 
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
-  TIM_TimeBaseStructInit(&TIMER_InitStructure);
+  //TIM_TimeBaseStructInit(&TIMER_InitStructure);
 
   TIMER_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
   TIMER_InitStructure.TIM_Prescaler = 72;
   TIMER_InitStructure.TIM_Period = 1000;
+  TIMER_InitStructure.TIM_ClockDivision = 0;
   TIM_TimeBaseInit(TIM3, &TIMER_InitStructure);
+  TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
   TIM_Cmd(TIM3, ENABLE);
 
   NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure);
 
   // ñ÷èòàåì îäèí ðàç
-  TIM_SelectOnePulseMode(TIM3, TIM_OPMode_Single);
+  //TIM_SelectOnePulseMode(TIM3, TIM_OPMode_Single);
 }
 void TIM3_IRQHandler(void) {
   if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)   {
       TIM_ClearITPendingBit(TIM3, TIM_IT_Update);//очищаем прерывания
       //если наш таймер больше уставки задержки и есть символы то есть gap -перерыв в посылке
       //и можно ее обрабатывать
-      if((uart1.rxtimer++ > uart1.delay)&(uart1.rxcnt > 1)) {
+      /*if (TIM3->CNT > 1000) {
+          uart1.rxtimer++;
+          TIM3->CNT = 0;
+        }
+*/
+      uart1.rxtimer++;
+      if((uart1.rxtimer > uart1.delay)&(uart1.rxcnt > 1)) {
           uart1.rxgap=1;
         }
       else {

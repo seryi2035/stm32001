@@ -91,12 +91,16 @@ int main(void)
             //USARTSend(buffer);
             sprintf(buffer, "temp :%d  ", dev001.temparature);
             USARTSend(buffer);
-            sprintf(buffer, "hum :%d \r\n", dev001.humidity);
+            sprintf(buffer, "hum :%d \n \n", dev001.humidity);
             USARTSend(buffer);
             RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
             sprintf(buffer, " %d:%d:%d\r\n",
 
                     (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
+            USARTSend(buffer);
+            sprintf(buffer, "rxtimer:%d  rxcnt:%d  txcnt:%d  txlen:%d  rxgap:%d  delay:%d\r\n",
+                    uart1.rxtimer, uart1.rxcnt, uart1.txcnt,
+                uart1.txlen, uart1.rxgap, uart1.delay);
             USARTSend(buffer);
             for(u8 i001 = 0; i001 < 40;i001++) {
                 vvhex(uart1.buffer[i001]);

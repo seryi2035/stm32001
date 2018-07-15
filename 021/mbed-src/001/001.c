@@ -144,7 +144,7 @@ void USART1_IRQHandler(void) {
   if(USART_GetITStatus(USART1, USART_IT_TC) != RESET)  {
       USART_ClearITPendingBit(USART1, USART_IT_TC);//очистка признака прерывания
 
-      if(uart1.txcnt<uart1.txlen)  {
+      if(uart1.txcnt < uart1.txlen)  {
           GPIO_SetBits(USART1PPport, USART1PPpin);  // +++++++++++++++++ключаем 485
           USART_SendData(USART1,uart1.buffer[uart1.txcnt++]);//Передаем
         }
@@ -573,34 +573,26 @@ int DHT11_read(struct DHT11_Dev* dev) {
 
   delay_ms(18);
   //wait 18ms
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 18000);
 
   //Put HIGH for 20-40us
   GPIO_SetBits(dev->port, dev->pin);
 
   delay_us(40);
   //wait 40us
-  //TIM2->CNT = 0;
-  //while((TIM2->CNT) <= 40);
+
   //End start condition
 
   //io();
   //Input mode to receive data
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_Init(dev->port, &GPIO_InitStructure);
-  //while(!GPIO_ReadInputDataBit(GPIOA, dev->pin));
-  //DHT11 ACK
-  //should be LOW for at least 80us
-  //while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-  TIM4->CNT = 0;
 
+  TIM4->CNT = 0;
   while(!GPIO_ReadInputDataBit(dev->port, dev->pin)){
       if(TIM4->CNT > 100)
         return DHT11_ERROR_TIMEOUT;
     }
   //should be HIGH for at least 80us
-  //while(GPIO_ReadInputDataBit(dev->port, dev->pin));
   TIM4->CNT = 0;
   while(GPIO_ReadInputDataBit(dev->port, dev->pin)) {
       if(TIM4->CNT > 100)
