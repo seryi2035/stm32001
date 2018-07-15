@@ -1,4 +1,4 @@
-#include "001.h"
+/*#include "001.h"
 #include "onewire.h"
 #include "tim2_delay.h"
 #include "libmodbus.h"
@@ -186,20 +186,7 @@ void TX_66(UART_DATA *MODBUS)
     }
 
 }
-/*void net_tx3(UART_DATA *uart)
-{
-  if((uart->txlen>0)&(uart->txcnt==0))
-    {
-      USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
-      USART_ITConfig(USART3, USART_IT_TC, ENABLE);
 
-      GPIO_WriteBit(GPIOB,GPIO_Pin_0,Bit_SET);
-      GPIO_WriteBit(GPIOB,GPIO_Pin_1,Bit_SET);
-
-      USART_SendData(USART3, uart->buffer[uart->txcnt++]);
-    }
-
-}*/
 void net_tx1(UART_DATA *uart)
 {
     if((uart->txlen>0)&(uart->txcnt==0))
@@ -320,3 +307,4 @@ void TX_02(UART_DATA *MODBUS) {
         TX_EXCEPTION(MODBUS,0x02);
     }
 }
+*/

@@ -1,4 +1,4 @@
-//MODBUS
+/*//MODBUS
 //#include "modbus.h"
 #define OBJ_SZ 123 //это количество объектов
 #define SETUP 4 //это просто количество данных в массиве 0-элемент которого означает адрес
@@ -37,3 +37,4 @@ void TX_66(UART_DATA *MODBUS);
 void net_tx1(UART_DATA *uart);
 void TX_01(UART_DATA *MODBUS);
 void TX_02(UART_DATA *MODBUS);
+*/

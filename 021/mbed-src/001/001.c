@@ -3,7 +3,8 @@
 #include "tim2_delay.h"
 #include "string.h"
 #include "stdio.h"
-#include "libmodbus.h"
+//#include "libmodbus.h"
+#include "modbus.h"
 
 void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
   GPIO_InitTypeDef GPIO_InitStructure;
@@ -131,7 +132,7 @@ void USART1_IRQHandler(void) {
       USART_SendData(USART1,(u16) RXc);
     }*/
   //Receive Data register not empty interrupt
-  /*if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  {
+  if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  {
       USART_ClearITPendingBit(USART1, USART_IT_RXNE); //очистка признака прерывания
       uart1.rxtimer = 0;
       if(uart1.rxcnt > (BUF_SZ-2)) {
@@ -155,8 +156,8 @@ void USART1_IRQHandler(void) {
           USART_ITConfig(USART1, USART_IT_TC, DISABLE);
           TIM_ITConfig(TIM3,TIM_IT_Update,ENABLE);
         }
-    }*/
-  if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
+    }
+  /*if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXu = (u8) USART_ReceiveData (USART1);
       uart1.buffer[uart1.rxcnt]= RXu;
       uart1.rxcnt++;
@@ -167,7 +168,7 @@ void USART1_IRQHandler(void) {
         }
       //Echo
       USART_SendData(USART1,(u16) uart1.buffer[uart1.rxcnt]);
-    }
+    }*/
 }
 void clear_RXBuffer(void) {
   for (RXi = 0; RXi < RX_BUF_SIZE; RXi++)
@@ -436,136 +437,6 @@ void vvhex(char vv) {
   ff[0] = get_ab_xFF(b);
   USARTSend(ff);
 }
-
-/*void usart3_init(void) { //ппц юсарт 3 к 1-ware те же GPIO B 10 11/ а не А2 А3
-  //USART 3 and GPIO B 10 11 ON
-  RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART3 | RCC_APB2Periph_GPIOB, ENABLE);
-
-  //NVIC
-  NVIC_InitTypeDef NVIC_InitStructure;
-  //
-  NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-  NVIC_Init(&NVIC_InitStructure);
-
-  //GPIO
-  GPIO_InitTypeDef GPIO_InitStructure;
-  //B0 DE
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  //B1 RE
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  //  B 10 TX DI
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  //  B 11 RX RO
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  //GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-  //  USART 3
-  USART_InitTypeDef USART_InitStructure;
-
-  USART_InitStructure.USART_BaudRate = 9600;
-  USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-  USART_InitStructure.USART_StopBits = USART_StopBits_1;
-  USART_InitStructure.USART_Parity = USART_Parity_No;
-  USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-  USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-  USART_Init (USART3, &USART_InitStructure);
-
-  USART_Cmd(USART3, ENABLE);
-
-  USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
-
-  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
-  GPIO_SetBits(GPIOB, GPIO_Pin_0);
-}*/
-/*void USART3_IRQHandler(void) {
-  if ((USART3->SR & USART_FLAG_RXNE) != (u16)RESET) {
-      RXc =(char) USART_ReceiveData(USART3);
-      RX_BUF[RXi] = RXc;
-      RXi++;
-      RX_FLAG_END_LINE = 0;
-      if (RXc != 13) {
-          if (RXi > RX_BUF_SIZE - 1) {
-              clear_RXBuffer();
-            }
-        } else {
-          RX_FLAG_END_LINE = 1;
-        }
-      //Echo
-      USART_SendData(USART3, RXc);
-    }
-}*/
-/*void USART3_IRQHandler(void)
-{
-  //Receive Data register not empty interrupt
-  if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)
-    {
-      USART_ClearITPendingBit(USART3, USART_IT_RXNE);
-      uart3.rxtimer=0;
-
-      if(uart3.rxcnt>(BUF_SZ-2)) {
-          uart3.rxcnt=0;
-        }
-      uart3.buffer[uart3.rxcnt++]=(unsigned char) USART_ReceiveData (USART3);
-      //Transmission complete interrupt
-      if(USART_GetITStatus(USART3, USART_IT_TC) != RESET)
-        {
-
-          USART_ClearITPendingBit(USART3, USART_IT_TC);
-          if(uart3.txcnt<uart3.txlen)
-            {
-              USART_SendData(USART3,uart3.buffer[uart3.txcnt++]);
-            }
-          else
-            {
-              uart3.txlen=0;
-              //rs485 tx disable
-              //GPIO_WriteBit(GPIOB,GPIO_Pin_2,Bit_RESET);
-              GPIO_WriteBit(GPIOB,GPIO_Pin_0,Bit_RESET);
-              GPIO_WriteBit(GPIOB,GPIO_Pin_1,Bit_RESET);
-
-              USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
-              USART_ITConfig(USART3, USART_IT_TC, DISABLE);
-            }
-        }
-    }
-}*/
-/*void USART3Send(char *pucBuffer) {
-  //for RS 485;
-  //GPIO_ResetBits(GPIOC, GPIO_Pin_13);
-  GPIO_ResetBits(GPIOB, GPIO_Pin_0);
-  GPIO_SetBits(GPIOB, GPIO_Pin_1);
-
-  delay_ms(2);
-  //u16 a;
-  while (*pucBuffer) {
-      USART_SendData(USART3,(uint16_t) *pucBuffer++);
-      while (USART_GetFlagStatus(USART3, USART_FLAG_TC) == RESET)
-        {
-        }
-      //a = ((uint16_t) *pucBuffer++);
-      //USART_SendData(USART3,a);
-    }
-  delay_ms(2);
-  //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1
-  //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   //C13 --0
-  GPIO_ResetBits(GPIOB, GPIO_Pin_1);
-  GPIO_SetBits(GPIOB, GPIO_Pin_0);
-  //GPIO_SetBits(GPIOC, GPIO_Pin_13);
-  //delay_ms(500);
-}*/
 void sendaddrow (void) {
   for(int i=0; i < RX_BUF_SIZE && i < 20;i++) {
       if (RX_BUF[i] != 0) {

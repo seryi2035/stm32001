@@ -48,9 +48,6 @@ char get_ab_xFF(int a);
 u8 convT_DS18B20(u8 LSB, u8 MSB);
 void schitatTemp(char* imya);
 void vvhex(char vv);
-//void usart3_init(void);
-//void USART3_IRQHandler(void);
-//void USART3Send(char *pucBuffer);
 void sendaddrow (void);
 
 #define USARTSend USART1Send485
