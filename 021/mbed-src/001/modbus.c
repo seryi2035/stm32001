@@ -44,13 +44,13 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
           MODBUS->buffer[MODBUS->txlen-1]=(uint8_t) tmp;
           MODBUS->buffer[MODBUS->txlen-2]=(uint8_t) (tmp>>8);
           MODBUS->txcnt=0;
-        } else {
+        } /*else {
           TX_EXCEPTION(MODBUS,0x03);
           tmp=crc16(MODBUS->buffer,MODBUS->txlen-2);
           MODBUS->buffer[MODBUS->txlen-1]=(uint8_t) tmp;
           MODBUS->buffer[MODBUS->txlen-2]=(uint8_t) (tmp>>8);
           MODBUS->txcnt=0;
-        }
+        }*/
     }
   //сброс индикаторов окончания посылки
   MODBUS->rxgap=0;
@@ -211,18 +211,13 @@ void TX_66(UART_DATA *MODBUS)
 }*/
 void net_tx1(UART_DATA *uart) {
   //GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
-  if((uart->txlen>0)&(uart->txcnt==0)) {
+  if((uart->txlen > 0) && (uart->txcnt == 0)) {
       USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //выкл прерывание на прием
       USART_ITConfig(USART1, USART_IT_TC, ENABLE); //включаем на окочание передачи
       //включаем rs485 на передачу
       GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
-      /*for (uart->txcnt=0; uart->txcnt < uart->txlen; uart->txcnt++) {
-          USART_SendData(USART1,(u16) uart->buffer[uart->txcnt]);
-          while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
-            {
-            }
-        }*/
-      USART01Send(uart1.buffer);
+      USART01Send(uart->buffer);
+      //USART_SendData(USART1,(u16) uart->buffer[uart->txcnt++]);
     }
 }
 void TX_01(UART_DATA *MODBUS) {

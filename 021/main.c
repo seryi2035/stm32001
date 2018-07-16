@@ -34,9 +34,10 @@ int main(void)
     dev001.temparature = 0;
     DHT11_init(&dev001, dev001.port, dev001.pin);
     //wwdgenable();
-    //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
-    //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
-    uart1.delay=800; //modbus gap 9600
+    GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+    delay_ms(1000);
+    GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+    uart1.delay=100; //modbus gap 9600
     startCOILS(Coils_RW);
 
     if (RTC_Init() == 1) {
@@ -60,15 +61,16 @@ int main(void)
     while (1) {
         IWDG_ReloadCounter();
         if(uart1.rxgap==1) {
-            delay_ms(50);
             GPIO_SetBits(USART1PPport, USART1PPpin);
+            delay_ms(2);
             MODBUS_SLAVE(&uart1);
             net_tx1(&uart1);
-            delay_ms(50);
+            delay_ms(2);
             GPIO_ResetBits(USART1PPport, USART1PPpin);
             //USARTSend("\n\rREADY!!!\n\r");
             //delay_ms(50);*/
         }
+        //GPIO_ResetBits(USART1PPport, USART1PPpin);
         /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
             oprosite ();
