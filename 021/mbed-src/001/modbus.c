@@ -210,14 +210,20 @@ void TX_66(UART_DATA *MODBUS)
 
 }*/
 void net_tx1(UART_DATA *uart) {
+
   //GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
-  if((uart->txlen > 0) && (uart->txcnt == 0)) {
+  if((uart->txlen>0)&(uart->txcnt==0)) {
       USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //выкл прерывание на прием
       USART_ITConfig(USART1, USART_IT_TC, ENABLE); //включаем на окочание передачи
       //включаем rs485 на передачу
       GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
-      USART01Send(uart->buffer);
-      //USART_SendData(USART1,(u16) uart->buffer[uart->txcnt++]);
+      /*for (uart->txcnt=0; uart->txcnt < uart->txlen; uart->txcnt++) {
+          USART_SendData(USART1,(u16) uart->buffer[uart->txcnt]);
+          while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+            {
+            }
+        }*/
+      USART01Send(uart1.buffer);
     }
 }
 void TX_01(UART_DATA *MODBUS) {
@@ -260,7 +266,7 @@ void TX_01(UART_DATA *MODBUS) {
               tmp001 = 0;
             }
         }
-      if (m <= 14) {
+      if (tmp1 <= 16) {
           MODBUS->buffer[n]=(uint8_t) (tmp_val_pos>>8);
           MODBUS->buffer[n+1]=(uint8_t) tmp_val_pos;
           n=n+2;
@@ -324,7 +330,7 @@ void TX_02(UART_DATA *MODBUS) {
               tmp001 = 0;
             }
         }
-      if (m <= 14) {
+      if (tmp1 <= 16) {
           MODBUS->buffer[n]=(uint8_t) (tmp_val_pos>>8);
           MODBUS->buffer[n+1]=(uint8_t) tmp_val_pos;
           n=n+2;

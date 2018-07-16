@@ -35,18 +35,19 @@ int main(void)
     DHT11_init(&dev001, dev001.port, dev001.pin);
     //wwdgenable();
     GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+    uart1.rxtimer = 0;
     delay_ms(1000);
     GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
-    uart1.delay=100; //modbus gap 9600
+    uart1.delay=150; //modbus gap 9600
     startCOILS(Coils_RW);
 
     if (RTC_Init() == 1) {
         // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-        RTC_DateTime.RTC_Date = 15;
+        RTC_DateTime.RTC_Date = 16;
         RTC_DateTime.RTC_Month = 7;
         RTC_DateTime.RTC_Year = 2018;
 
-        RTC_DateTime.RTC_Hours = 4;
+        RTC_DateTime.RTC_Hours = 14;
         RTC_DateTime.RTC_Minutes = 49;
         RTC_DateTime.RTC_Seconds = 30;
         //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -61,16 +62,15 @@ int main(void)
     while (1) {
         IWDG_ReloadCounter();
         if(uart1.rxgap==1) {
+            delay_ms(5);
             GPIO_SetBits(USART1PPport, USART1PPpin);
-            delay_ms(2);
             MODBUS_SLAVE(&uart1);
             net_tx1(&uart1);
-            delay_ms(2);
+            delay_ms(5);
             GPIO_ResetBits(USART1PPport, USART1PPpin);
             //USARTSend("\n\rREADY!!!\n\r");
             //delay_ms(50);*/
         }
-        //GPIO_ResetBits(USART1PPport, USART1PPpin);
         /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
             oprosite ();

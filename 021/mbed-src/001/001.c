@@ -138,15 +138,15 @@ void USART1_IRQHandler(void) {
       if(uart1.rxcnt > (BUF_SZ-2)) {
           uart1.rxcnt=0;
         }
-      uart1.buffer[uart1.rxcnt++]= USART_ReceiveData (USART1);
+      uart1.buffer[uart1.rxcnt++]=USART_ReceiveData (USART1);
     }
   //Transmission complete interrupt
   if(USART_GetITStatus(USART1, USART_IT_TC) != RESET)  {
       USART_ClearITPendingBit(USART1, USART_IT_TC);//очистка признака прерывания
 
       if(uart1.txcnt < uart1.txlen)  {
-          //GPIO_SetBits(USART1PPport, USART1PPpin);  // +++++++++++++++++ключаем 485
-          USART_SendData(USART1,(u16) uart1.buffer[uart1.txcnt]++);//Передаем
+          GPIO_SetBits(USART1PPport, USART1PPpin);  // +++++++++++++++++ключаем 485
+          USART_SendData(USART1,uart1.buffer[uart1.txcnt++]);//Передаем
         }
       else {
           //посылка закончилась и мы снимаем высокий уровень сRS485 TXE
@@ -176,16 +176,11 @@ void clear_RXBuffer(void) {
   RXi = 0;
 }
 void USART01Send(u8 *pucBuffer) {
-    while (*pucBuffer) {
-      //RXu++;
+  while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
-      while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
+      while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
         {
         }
-      /*if (RXu >= uart1.txlen+1) {
-          RXu = 0;
-          break;
-        }*/
     }
 }
 void USART1Send(char *pucBuffer) {
@@ -680,51 +675,47 @@ void WWDG_IRQHandler(void) {
   GPIOC->ODR ^= GPIO_Pin_13;
 }
 void iwdg_init(void) {
-    // включаем LSI
-    RCC_LSICmd(ENABLE);
-    while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
-    // разрешается доступ к регистрам IWDG
-    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
-    // устанавливаем предделитель
-    IWDG_SetPrescaler(IWDG_Prescaler_256);
-    // значение для перезагрузки
-    IWDG_SetReload(0x300); //256/40000*0x300=4.9152
-    // перезагрузим значение
-    IWDG_ReloadCounter();
-    // LSI должен быть включен
-    IWDG_Enable();
+  // включаем LSI
+  RCC_LSICmd(ENABLE);
+  while (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) == RESET);
+  // разрешается доступ к регистрам IWDG
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+  // устанавливаем предделитель
+  IWDG_SetPrescaler(IWDG_Prescaler_256);
+  // значение для перезагрузки
+  IWDG_SetReload(0x300); //256/40000*0x300=4.9152
+  // перезагрузим значение
+  IWDG_ReloadCounter();
+  // LSI должен быть включен
+  IWDG_Enable();
 }
 
 void setCOILS(uint8_t *Coils_RW) {
-    if (Coils_RW[0]) { GPIO_ResetBits(GPIOC, GPIO_Pin_13);  } else { GPIO_SetBits(GPIOC, GPIO_Pin_13); }
-    if (Coils_RW[1]) { GPIO_SetBits(GPIOB, GPIO_Pin_11);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_11);  }
-    if (Coils_RW[2]) { GPIO_SetBits(GPIOB, GPIO_Pin_10);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_10);  }
-    if (Coils_RW[3]) { GPIO_SetBits(GPIOB, GPIO_Pin_1);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_1);   }
-    if (Coils_RW[4]) { GPIO_SetBits(GPIOB, GPIO_Pin_0);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_0);   }
+  if (Coils_RW[0]) { GPIO_ResetBits(GPIOC, GPIO_Pin_13);  } else { GPIO_SetBits(GPIOC, GPIO_Pin_13); }
+  if (Coils_RW[1]) { GPIO_SetBits(GPIOB, GPIO_Pin_11);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_11);  }
+  if (Coils_RW[2]) { GPIO_SetBits(GPIOB, GPIO_Pin_10);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_10);  }
+  if (Coils_RW[3]) { GPIO_SetBits(GPIOB, GPIO_Pin_1);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_1);   }
+  if (Coils_RW[4]) { GPIO_SetBits(GPIOB, GPIO_Pin_0);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_0);   }
 }
 void read_Discrete_Inputs_RO(void) {
-    for(u8 i = 9; i < 16; i++) { Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-9];   }
-    Discrete_Inputs_RO[8] = Discrete_Inputs_RO[7];
-    if (!GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)) {   Discrete_Inputs_RO[0] = 1;  } else { Discrete_Inputs_RO[0] = 0;  }
-    //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[1] = 1 : Discrete_Inputs_RO[1] = 0;
-    if (!GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11)) {
-        Discrete_Inputs_RO[1] = 1;
-      } else {
-        Discrete_Inputs_RO[1] = 0;
-      }
-    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10)) {   Discrete_Inputs_RO[2] = 1;  } else { Discrete_Inputs_RO[2] = 0;  }
-    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1))  {   Discrete_Inputs_RO[3] = 1;  } else { Discrete_Inputs_RO[3] = 0;  }
-    if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0))  {   Discrete_Inputs_RO[4] = 1;  } else { Discrete_Inputs_RO[4] = 0;  }
-    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3))   {   Discrete_Inputs_RO[5] = 1;  } else { Discrete_Inputs_RO[5] = 0;  }
-    //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
-    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4))   {
-        Discrete_Inputs_RO[6] = 1;
-      } else {
-        Discrete_Inputs_RO[6] = 0;
-      }
-    //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
-    if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5))   {   Discrete_Inputs_RO[7] = 1;  } else { Discrete_Inputs_RO[7] = 0;   }
-    for(u8 i = 16; i < 32; i++) { Discrete_Inputs_RO[i] = Coils_RW[i-16];   }
+  for(u8 i = 9; i < 16; i++) {
+      Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-9];
+    }
+  Discrete_Inputs_RO[8] = Coils_RW[7];
+  if (GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)) {   Discrete_Inputs_RO[0] = 1;  } else { Discrete_Inputs_RO[0] = 0;  }
+  //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[1] = 1 : Discrete_Inputs_RO[1] = 0;
+  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11)) {   Discrete_Inputs_RO[1] = 1;  } else { Discrete_Inputs_RO[1] = 0;  }
+  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10)) {   Discrete_Inputs_RO[2] = 1;  } else { Discrete_Inputs_RO[2] = 0;  }
+  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1))  {   Discrete_Inputs_RO[3] = 1;  } else { Discrete_Inputs_RO[3] = 0;  }
+  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0))  {   Discrete_Inputs_RO[4] = 1;  } else { Discrete_Inputs_RO[4] = 0;  }
+  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3))   {   Discrete_Inputs_RO[5] = 1;  } else { Discrete_Inputs_RO[5] = 0;  }
+  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
+  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4))   {   Discrete_Inputs_RO[6] = 1;  } else { Discrete_Inputs_RO[6] = 0;   }
+  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
+  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5))   {   Discrete_Inputs_RO[7] = 1;  } else { Discrete_Inputs_RO[7] = 0;   }
+  for(u8 i = 16; i < 32; i++) {
+      Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-16];
+    }
 }
 void startCOILS(uint8_t *Coils_RW) {
   for(u8 i = 0; i < 32; i++) {
