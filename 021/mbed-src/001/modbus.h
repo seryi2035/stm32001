@@ -23,7 +23,6 @@ typedef struct {
   uint8_t ddddddDOBAVKA[1];
 } UART_DATA;
 UART_DATA uart1;//структуры для соответсвующих усартов
-void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
 //timer 0.0001sec one symbol on 9600 ~1ms
 //uart3.delay=30; //modbus gap 9600
 //uart3.delay=10; //modbus gap 38400
@@ -34,7 +33,7 @@ void TX_06(UART_DATA *MODBUS);
 void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);
 void TX_66(UART_DATA *MODBUS);
 //void net_tx3(UART_DATA *uart);
-void net_tx1(UART_DATA *uart);
+
 void TX_01(UART_DATA *MODBUS);
 void TX_02(UART_DATA *MODBUS);
 uint16_t crc16(uint8_t *buffer, uint16_t buffer_length);
