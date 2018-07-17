@@ -6,9 +6,7 @@
 //#include "libmodbus.h"
 #include "modbus.h"
 
-
-
-void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
+void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B4 | IPD B8 FLOAT B9
   GPIO_InitTypeDef GPIO_InitStructure;
   //LED C.13
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
@@ -55,22 +53,22 @@ void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
   //KNOPKA B3 IPU
   //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   //KNOPKA B4 IPU
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   //IPD B5
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
@@ -117,7 +115,6 @@ void usart1_init(void) { //USART 1 and GPIO A (9/10/11) ON A11pp
   //GPIO_SetBits(USART1PPport, USART1PPpin);
   GPIO_ResetBits(USART1PPport, USART1PPpin);
 }
-
 void USART1_IRQHandler(void) {
   /*if ((USART1->SR & USART_FLAG_RXNE) != (u16)RESET) {
       RXc =(char) USART_ReceiveData(USART1);
@@ -174,8 +171,6 @@ void USART1_IRQHandler(void) {
       USART_SendData(USART1,(u16) uart1.buffer[uart1.rxcnt]);
     }*/
 }
-
-
 void clear_RXBuffer(void) {
   for (RXi = 0; RXi < RX_BUF_SIZE; RXi++)
     RX_BUF[RXi] = '\0';
@@ -696,44 +691,3 @@ void iwdg_init(void) {
   IWDG_Enable();
 }
 
-void setCOILS(uint8_t *Coils_RW) {
-  if (Coils_RW[0]) { GPIO_ResetBits(GPIOC, GPIO_Pin_13);  } else { GPIO_SetBits(GPIOC, GPIO_Pin_13); }
-  if (Coils_RW[1]) { GPIO_SetBits(GPIOB, GPIO_Pin_11);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_11);  }
-  if (Coils_RW[2]) { GPIO_SetBits(GPIOB, GPIO_Pin_10);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_10);  }
-  if (Coils_RW[3]) { GPIO_SetBits(GPIOB, GPIO_Pin_1);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_1);   }
-  if (Coils_RW[4]) { GPIO_SetBits(GPIOB, GPIO_Pin_0);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_0);   }
-}
-void read_Discrete_Inputs_RO(void) {
-
-  if(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13) != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[0] = 1; }else{ Discrete_Inputs_RO[0] = 0;}
-  //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[1] = 1 : Discrete_Inputs_RO[1] = 0;
-  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[1] = 1; }else{ Discrete_Inputs_RO[1] = 0;}
-  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10) == (uint8_t)Bit_RESET) { Discrete_Inputs_RO[2] = 1; }else{ Discrete_Inputs_RO[2] = 0;}
-  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1)  != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[3] = 1; }else{ Discrete_Inputs_RO[3] = 0;}
-  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)  != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[4] = 1; }else{ Discrete_Inputs_RO[4] = 0;}
-  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[5] = 1; }else{ Discrete_Inputs_RO[5] = 0;}
-  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
-  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[6] = 1; }else{ Discrete_Inputs_RO[6] = 0;}
-  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
-  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[7] = 1; }else{ Discrete_Inputs_RO[7] = 0;}
-  /*Discrete_Inputs_RO[0] = 1;
-  Discrete_Inputs_RO[1] = 1;
-  Discrete_Inputs_RO[2] = 0;
-  Discrete_Inputs_RO[3] = 1;
-  Discrete_Inputs_RO[4] = 1;
-  Discrete_Inputs_RO[5] = 1;
-  Discrete_Inputs_RO[6] = 1;
-  Discrete_Inputs_RO[7] = 1;*/
-  for(u8 i = 9; i < 16; i++) {
-      Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-9];
-    }
-  Discrete_Inputs_RO[8] = Discrete_Inputs_RO[7];
-  for(u8 i = 16; i < 32; i++) {
-      Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-16];
-    }
-}
-void startCOILS(uint8_t *Coils_RW) {
-  for(u8 i = 0; i < 32; i++) {
-      Coils_RW[i] = 0;
-    }
-}

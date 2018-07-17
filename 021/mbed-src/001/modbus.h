@@ -29,7 +29,6 @@ struct UART_DATA uart1;//структуры для соответсвующих 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
 void net_tx1(UART_DATA *uart);
 void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
-uint32_t Crc16(unsigned char *ptrByte, int byte_cnt);
 void TX_03_04(UART_DATA *MODBUS);
 void TX_06(UART_DATA *MODBUS);
 void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);
@@ -38,4 +37,9 @@ void TX_66(UART_DATA *MODBUS);
 
 void TX_01(UART_DATA *MODBUS);
 void TX_02(UART_DATA *MODBUS);
-uint16_t crc16(uint8_t *buffer, uint16_t buffer_length);
+
+uint8_t Coils_RW[32];
+uint8_t Discrete_Inputs_RO[32];
+void setCOILS(uint8_t *Coils_RW);
+void read_Discrete_Inputs_RO(void);
+void startCOILS(uint8_t *Coils_RW);
