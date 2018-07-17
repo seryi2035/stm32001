@@ -7,7 +7,7 @@
 #include "stdio.h"
 #include "misc.h"
 //#include "001.h"
-#include "tim2_delay.h"
+//#include "tim2_delay.h"
 #include "onewire.h"
 #include <string.h>
 //#include "libmodbus.h"
@@ -50,9 +50,12 @@ volatile char RX_FLAG_END_LINE;
 volatile unsigned int RXi;
 volatile char RXc;
 volatile uint8_t RXu;
-char RX_BUF[RX_BUF_SIZE]; //= {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
+char RX_BUF[RX_BUF_SIZE]; //= {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\
+//0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
 u8 RX_BUF08[RX_BUF_SIZE];
-char buffer[80];// = {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
+char buffer[80];
+// = {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0
+//\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
 volatile int TimeResult;
 volatile int iResult;
 volatile float fResult;
@@ -100,10 +103,10 @@ void oprosite (void);
 #define DHT11_ERROR_CHECKSUM  2
 #define DHT11_ERROR_TIMEOUT   3
 typedef struct DHT11_Dev {
-	uint8_t temparature;
-	uint8_t humidity;
-	GPIO_TypeDef* port;
-	uint16_t pin;
+  uint8_t temparature;
+  uint8_t humidity;
+  GPIO_TypeDef* port;
+  uint16_t pin;
 } DHT11_Dev;
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin);
 int DHT11_read(struct DHT11_Dev* dev);
@@ -145,62 +148,64 @@ void TIM3_init(void);
 
 int main(void)
 {
-    /*uint32_t RTC_Counter01 = 0;
+  /*uint32_t RTC_Counter01 = 0;
     uint32_t RTC_Counter02 = 0;
     int res003;*/
-    RTC_DateTimeTypeDef RTC_DateTime;
-    SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
+  RTC_DateTimeTypeDef RTC_DateTime;
+  SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
 
-    GETonGPIO();                                                    //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
-    TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
-    TIM3_init();
-    TIM4_init(); // мкс 0-49999 TIM4->CNT
-    usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485     //USART 1 and GPIO A (9/10/11) ON A11pp
-    OW_Init(); //usart2 А2 А3
-    dev001.port = GPIOA;
-    dev001.pin = GPIO_Pin_12;
-    dev001.humidity = 0;
-    dev001.temparature = 0;
-    DHT11_init(&dev001, dev001.port, dev001.pin);
-    //wwdgenable();
-    GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
-    uart1.rxtimer = 0;
-    delay_ms(1000);
-    GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
-    uart1.delay=150; //modbus gap 9600
-    startCOILS(Coils_RW);
+  GETonGPIO();                                                    //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
+  TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
+  TIM3_init();
+  TIM4_init(); // мкс 0-49999 TIM4->CNT
+  usart1_init(); //A9 PP RXD A10 TXD жёлый //RS232 A11 ResetBits //485     //USART 1 and GPIO A (9/10/11) ON A11pp
+  OW_Init(); //usart2 А2 А3
+  dev001.port = GPIOA;
+  dev001.pin = GPIO_Pin_12;
+  dev001.humidity = 0;
+  dev001.temparature = 0;
+  DHT11_init(&dev001, dev001.port, dev001.pin);
+  //wwdgenable();
+  GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+  //uart1.rxtimer = 0;
+  delay_ms(1000);
+  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+  uart1.delay=150; //modbus gap 9600
+  startCOILS(Coils_RW);
 
-    if (RTC_Init() == 1) {
-        // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-        RTC_DateTime.RTC_Date = 16;
-        RTC_DateTime.RTC_Month = 7;
-        RTC_DateTime.RTC_Year = 2018;
+  if (RTC_Init() == 1) {
+      // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
+      RTC_DateTime.RTC_Date = 17;
+      RTC_DateTime.RTC_Month = 7;
+      RTC_DateTime.RTC_Year = 2018;
 
-        RTC_DateTime.RTC_Hours = 22;
-        RTC_DateTime.RTC_Minutes = 49;
-        RTC_DateTime.RTC_Seconds = 30;
-        //После инициализации требуется задержка. Без нее время не устанавливается.
-        delay_ms(500);
-        RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
+      RTC_DateTime.RTC_Hours = 2;
+      RTC_DateTime.RTC_Minutes = 49;
+      RTC_DateTime.RTC_Seconds = 30;
+      //После инициализации требуется задержка. Без нее время не устанавливается.
+      delay_ms(500);
+      RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
     }
-    iwdg_init();
-    //sprintf(buffer, "\n\rREADY!!!%d\n\r", (int) RTC_GetCounter());
-    //USARTSend(buffer);
-    //USARTSend("\n\rREADY!!!\n\r");
-    //USART3Send("\n\rREADY!!!\n\r");
-    while (1) {
-        IWDG_ReloadCounter();
-        if(uart1.rxgap==1) {
-            delay_ms(5);
-            GPIO_SetBits(USART1PPport, USART1PPpin);
-            MODBUS_SLAVE(&uart1);
-            net_tx1(&uart1);
-            delay_ms(5);
-            GPIO_ResetBits(USART1PPport, USART1PPpin);
-            //USARTSend("\n\rREADY!!!\n\r");
-            //delay_ms(50);*/
+  iwdg_init();
+  //sprintf(buffer, "\n\rREADY!!!%d\n\r", (int) RTC_GetCounter());
+  //USARTSend(buffer);
+  //USARTSend("\n\rREADY!!!\n\r");
+  //USART3Send("\n\rREADY!!!\n\r");
+  while (1) {
+      IWDG_ReloadCounter();
+      if(uart1.rxgap==1) {
+          delay_ms(5);
+          GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+          GPIO_SetBits(USART1PPport, USART1PPpin);
+          MODBUS_SLAVE(&uart1);
+          net_tx1(&uart1);
+          delay_ms(5);
+          GPIO_ResetBits(USART1PPport, USART1PPpin);
+          GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+          //USARTSend("\n\rREADY!!!\n\r");
+          //delay_ms(50);*/
         }
-        /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
+      /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
             oprosite ();
             //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
@@ -247,7 +252,7 @@ int main(void)
             //USARTSend(buffer);
             USARTSend(" end \n");
           }*/
-        /* if (RX_FLAG_END_LINE == 1) {
+      /* if (RX_FLAG_END_LINE == 1) {
           // Reset RX_Flag end line
           RX_FLAG_END_LINE = 0;
 
@@ -519,21 +524,21 @@ void GETonGPIO() { //PP B(11/10/1/0) C13 A(7/6) | IPU B(3/4) | UPD B5
 
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   //KNOPKA B4 IPU
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
   //IPD B5
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 }
 void usart1_init(void) { //USART 1 and GPIO A (9/10/11) ON A11pp
@@ -588,7 +593,7 @@ void clear_RXBuffer(void) {
 void USART01Send(u8 *pucBuffer) {
   while (*pucBuffer) {
       USART_SendData(USART1,(uint16_t) *pucBuffer++);
-      while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET)
+      while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
         {
         }
     }
@@ -1109,25 +1114,25 @@ void setCOILS(uint8_t *Coils_RW) {
 }
 void read_Discrete_Inputs_RO(void) {
 
-  /*if (GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)) {   Discrete_Inputs_RO[0] = 1;  } else { Discrete_Inputs_RO[0] = 0;  }
+  if(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13) != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[0] = 1; }else{ Discrete_Inputs_RO[0] = 0;}
   //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[1] = 1 : Discrete_Inputs_RO[1] = 0;
-  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11)) {   Discrete_Inputs_RO[1] = 1;  } else { Discrete_Inputs_RO[1] = 0;  }
-  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10)) {   Discrete_Inputs_RO[2] = 1;  } else { Discrete_Inputs_RO[2] = 0;  }
-  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1))  {   Discrete_Inputs_RO[3] = 1;  } else { Discrete_Inputs_RO[3] = 0;  }
-  if (GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0))  {   Discrete_Inputs_RO[4] = 1;  } else { Discrete_Inputs_RO[4] = 0;  }
-  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3))   {   Discrete_Inputs_RO[5] = 1;  } else { Discrete_Inputs_RO[5] = 0;  }
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[1] = 1; }else{ Discrete_Inputs_RO[1] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10) == (uint8_t)Bit_RESET) { Discrete_Inputs_RO[2] = 1; }else{ Discrete_Inputs_RO[2] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1)  != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[3] = 1; }else{ Discrete_Inputs_RO[3] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)  != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[4] = 1; }else{ Discrete_Inputs_RO[4] = 0;}
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[5] = 1; }else{ Discrete_Inputs_RO[5] = 0;}
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
-  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4))   {   Discrete_Inputs_RO[6] = 1;  } else { Discrete_Inputs_RO[6] = 0;   }
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[6] = 1; }else{ Discrete_Inputs_RO[6] = 0;}
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
-  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5))   {   Discrete_Inputs_RO[7] = 1;  } else { Discrete_Inputs_RO[7] = 0;   }*/
-  Discrete_Inputs_RO[0] = 1;
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5)   != (uint8_t)Bit_RESET) { Discrete_Inputs_RO[7] = 1; }else{ Discrete_Inputs_RO[7] = 0;}
+  /*Discrete_Inputs_RO[0] = 1;
   Discrete_Inputs_RO[1] = 1;
   Discrete_Inputs_RO[2] = 0;
   Discrete_Inputs_RO[3] = 1;
-  Discrete_Inputs_RO[4] = 0;
+  Discrete_Inputs_RO[4] = 1;
   Discrete_Inputs_RO[5] = 1;
-  Discrete_Inputs_RO[6] = 0;
-  Discrete_Inputs_RO[7] = 0;
+  Discrete_Inputs_RO[6] = 1;
+  Discrete_Inputs_RO[7] = 1;*/
   for(u8 i = 9; i < 16; i++) {
       Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-9];
     }
@@ -1528,28 +1533,28 @@ uint16_t crc_modbus(u8 *input_str, u8 num_bytes ) {
 }
 void init_crc16_tab( void ) {
 
-	uint16_t i;
-	uint16_t j;
-	uint16_t crc;
-	uint16_t c;
+  uint16_t i;
+  uint16_t j;
+  uint16_t crc;
+  uint16_t c;
 
-	for (i=0; i<256; i++) {
+  for (i=0; i<256; i++) {
 
-		crc = 0;
-		c   = i;
+      crc = 0;
+      c   = i;
 
-		for (j=0; j<8; j++) {
+      for (j=0; j<8; j++) {
 
-			if ( (crc ^ c) & 0x0001 ) crc = ( crc >> 1 ) ^ 0xA001;
-			else                      crc =   crc >> 1;
+          if ( (crc ^ c) & 0x0001 ) crc = ( crc >> 1 ) ^ 0xA001;
+          else                      crc =   crc >> 1;
 
-			c = c >> 1;
-		}
+          c = c >> 1;
+        }
 
-		crc_tab16[i] = crc;
-	}
+      crc_tab16[i] = crc;
+    }
 
-	crc_tab16_init = 1;
+  crc_tab16_init = 1;
 
 }
 
