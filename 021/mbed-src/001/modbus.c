@@ -284,9 +284,7 @@ void TX_66(UART_DATA *MODBUS)
 }*/
 
 void TX_01(UART_DATA *MODBUS) {
-  for(u8 i = 0; i < 32; i++) {
-      Coils_RW[i] = 0;
-    }
+  read_Coils_RW();
   uint32_t tmp,tmp1;
   uint32_t m=0,n=0;
   int tmp_val;
@@ -453,6 +451,31 @@ void read_Discrete_Inputs_RO(void) {
 void startCOILS(uint8_t *Coils_RW) {
   for(u8 i = 0; i < 32; i++) {
       Coils_RW[i] = 0;
+    }
+}
+void read_Coils_RW(void) {
+
+  if(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13) == (uint8_t)Bit_SET) { Coils_RW[0] = 1; }else{ Coils_RW[0] = 0;}
+  //GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET ? Coils_RW[1] = 1 : Coils_RW[1] = 0;
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_11) == (uint8_t)Bit_SET) { Coils_RW[1] = 1; }else{ Coils_RW[1] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_10) == (uint8_t)Bit_SET) { Coils_RW[2] = 1; }else{ Coils_RW[2] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_1)  == (uint8_t)Bit_SET) { Coils_RW[3] = 1; }else{ Coils_RW[3] = 0;}
+  if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)  == (uint8_t)Bit_SET) { Coils_RW[4] = 1; }else{ Coils_RW[4] = 0;}
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8)   == (uint8_t)Bit_SET) { Coils_RW[5] = 1; }else{ Coils_RW[5] = 0;}
+  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Coils_RW[6] = 1; : Coils_RW[6] = 0;
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   == (uint8_t)Bit_SET) { Coils_RW[6] = 1; }else{ Coils_RW[6] = 0;}
+  //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Coils_RW[7] = 1; : Coils_RW[7] = 0;
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9)   == (uint8_t)Bit_SET) { Coils_RW[7] = 1; }else{ Coils_RW[7] = 0;}
+  Coils_RW[8]  = 1;
+  Coils_RW[9]  = 1;
+  Coils_RW[10] = 1;
+  Coils_RW[11] = 1;
+  Coils_RW[12] = 1;
+  Coils_RW[13] = 1;
+  Coils_RW[14] = 1;
+  Coils_RW[15] = 1;
+  for(u8 i = 16; i < 32; i++) {
+      Coils_RW[i] = Coils_RW[i-16];
     }
 }
 
