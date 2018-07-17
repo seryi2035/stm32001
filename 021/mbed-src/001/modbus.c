@@ -492,9 +492,9 @@ void TX_05(UART_DATA *MODBUS) {
     //если нас устраивает
     if(tmp <= 32) {
         if (tmp1 == (uint16_t) 0xff00) {
-            Coils_RW[tmp] = 1;
+            Coils_RW[tmp-1] = 1;
         } else if (tmp1 == 0x0000) {
-            Coils_RW[tmp] = 0;
+            Coils_RW[tmp-1] = 0;
         } else {
             TX_EXCEPTION(MODBUS,0x03);
         }
