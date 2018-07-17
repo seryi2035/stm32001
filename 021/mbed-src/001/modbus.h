@@ -11,7 +11,7 @@ float res_ftable[OBJ_SZ];
 #define BUF_SZ 256 //размер буфера
 #define MODBUS_WRD_SZ (BUF_SZ-5)/2 //максимальное количество регистров в ответе
 //uart structure
-typedef struct {
+typedef struct UART_DATA {
   uint8_t buffer[BUF_SZ];//буфер
   uint16_t rxtimer;//этим мы считаем таймоут
   uint8_t rxcnt; //количество принятых символов
@@ -22,11 +22,13 @@ typedef struct {
   uint16_t delay;//задержка
   uint8_t ddddddDOBAVKA[1];
 } UART_DATA;
-UART_DATA uart1;//структуры для соответсвующих усартов
+struct UART_DATA uart1;//структуры для соответсвующих усартов
 //timer 0.0001sec one symbol on 9600 ~1ms
 //uart3.delay=30; //modbus gap 9600
 //uart3.delay=10; //modbus gap 38400
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
+void net_tx1(UART_DATA *uart);
+void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
 uint32_t Crc16(unsigned char *ptrByte, int byte_cnt);
 void TX_03_04(UART_DATA *MODBUS);
 void TX_06(UART_DATA *MODBUS);
