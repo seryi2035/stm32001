@@ -53,7 +53,7 @@ void vvhex(char vv);
 void sendaddrow (void);
 
 float schitatfTemp(char* imya);
-int schitatiTemp(char* imya);
+uint16_t schitatU16Temp(char* imya);
 void oprosite (void);
 
 #define DHT11_SUCCESS         1
@@ -66,7 +66,7 @@ typedef struct DHT11_Dev {
   uint16_t pin;
 } DHT11_Dev;
 int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin);
-int DHT11_read(struct DHT11_Dev* dev);
+uint16_t DHT11_read(struct DHT11_Dev* dev);
 
 void wwdgenable(void);
 void WWDG_IRQHandler(void);

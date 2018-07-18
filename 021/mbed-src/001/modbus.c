@@ -115,10 +115,10 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
               TX_02(MODBUS);
               break;
             case 3:
-              TX_03_04(MODBUS);
+              TX_03(MODBUS);
               break;
             case 4:
-              TX_03_04(MODBUS);
+              TX_04(MODBUS); //Read Input Registers
               break;
             case 5:
               TX_05(MODBUS);
@@ -151,62 +151,6 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
   MODBUS->rxgap=0;
   MODBUS->rxcnt=0;
   MODBUS->rxtimer=0xFFFF;
-}
-void TX_03_04(UART_DATA *MODBUS)
-{
-  uint32_t tmp,tmp1;
-  uint32_t m=0,n=0;
-  int tmp_val,tmp_val_pos;
-
-  //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
-  //MODBUS->buffer[1] = 3; //query type - - stay a same as in recived
-  //MODBUS->buffer[2] = data byte count
-
-  //2-3  - starting address
-  tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
-
-  //4-5 - number of registers
-  tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
-
-  //default answer length if error
-  n=3;
-
-  //если нас устраивает длина запроса и и стартовый адрес
-  if((((tmp+tmp1)<OBJ_SZ)&(tmp1<MODBUS_WRD_SZ+1)))
-    {
-
-      for(m=0;m<tmp1;m++)
-        {
-          tmp_val=res_table[m+tmp];//читаем текущее значение
-
-          if(tmp_val<0)
-            {
-              //пакуем отрицательное
-              tmp_val_pos=tmp_val;
-              MODBUS->buffer[n]=(uint8_t) (tmp_val_pos>>8)|0b10000000;
-              MODBUS->buffer[n+1]=(uint8_t) tmp_val_pos;
-            }
-          else
-            {
-              //пакуем положительное
-              MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
-              MODBUS->buffer[n+1]=(uint8_t) tmp_val;
-            }
-          n=n+2;
-        }
-
-      //запишем длину переменных пакета в байтах и вставим всообщение
-      MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
-      //подготовим к отправке
-      MODBUS->txlen=(uint8_t) (m*2+5); //responce length
-
-    }
-  else
-    {
-      //exception illegal data adress 0x02
-      TX_EXCEPTION(MODBUS,0x02);
-    }
-
 }
 void TX_06(UART_DATA *MODBUS)
 {
@@ -245,8 +189,8 @@ void TX_66(UART_DATA *MODBUS)
   void oprosite (void);
   res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
   res_ftable[2] = schitatfTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-  res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-  res_table[4] = schitatiTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+  res_table[3] = schitatU16Temp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
+  res_table[4] = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
 
   uint32_t tmp;
 
@@ -494,7 +438,7 @@ void TX_05(UART_DATA *MODBUS) {
           TX_EXCEPTION(MODBUS,0x03);
         }
       //подготовим к отправке
-
+      MODBUS->buffer[2] = (uint8_t) (tmp>>8); //#################    надеюсь поможет
       MODBUS->txlen=(uint8_t) (8); //responce length
     }
   else  {
@@ -502,5 +446,94 @@ void TX_05(UART_DATA *MODBUS) {
       TX_EXCEPTION(MODBUS,0x02);
     }
   setCOILS(Coils_RW);
+}
+void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
+  uint32_t tmp,tmp1;
+  uint32_t m=0,n=0;
+  uint16_t tmp_val;
+
+  //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
+  //MODBUS->buffer[1] = 3; //query type - - stay a same as in recived
+  //MODBUS->buffer[2] = data byte count
+
+  //2-3  - starting address
+  tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+  //4-5 - number of registers
+  tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+  //default answer length if error
+  n=3;
+
+  //если нас устраивает длина запроса и и стартовый адрес
+  if(((tmp+tmp1) < OBJ_SZ) && (tmp1 < MODBUS_WRD_SZ+1)) {
+      for(m=0;m<tmp1;m++)    {
+          tmp_val=res_table[m+tmp];//читаем текущее значение uint16_t
+          MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
+          MODBUS->buffer[n+1]=(uint8_t) tmp_val;
+          n=n+2;
+        }
+      //запишем длину переменных пакета в байтах и вставим всообщение
+      MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
+      //подготовим к отправке
+      MODBUS->txlen=(uint8_t) (m*2+5); //responce length
+    } else {
+      //exception illegal data adress 0x02
+      TX_EXCEPTION(MODBUS,0x02);
+    }
+}
+void TX_03(UART_DATA *MODBUS)
+{
+  uint32_t tmp,tmp1;
+  uint32_t m=0,n=0;
+  int tmp_val,tmp_val_pos;
+
+  //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
+  //MODBUS->buffer[1] = 3; //query type - - stay a same as in recived
+  //MODBUS->buffer[2] = data byte count
+
+  //2-3  - starting address
+  tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+
+  //4-5 - number of registers
+  tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+
+  //default answer length if error
+  n=3;
+
+  //если нас устраивает длина запроса и и стартовый адрес
+  if((((tmp+tmp1)<OBJ_SZ)&(tmp1<MODBUS_WRD_SZ+1)))
+    {
+
+      for(m=0;m<tmp1;m++)
+        {
+          tmp_val=res_table[m+tmp];//читаем текущее значение
+
+          if(tmp_val<0)
+            {
+              //пакуем отрицательное
+              tmp_val_pos=tmp_val;
+              MODBUS->buffer[n]=(uint8_t) (tmp_val_pos>>8)|0b10000000;
+              MODBUS->buffer[n+1]=(uint8_t) tmp_val_pos;
+            }
+          else
+            {
+              //пакуем положительное
+              MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
+              MODBUS->buffer[n+1]=(uint8_t) tmp_val;
+            }
+          n=n+2;
+        }
+
+      //запишем длину переменных пакета в байтах и вставим всообщение
+      MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
+      //подготовим к отправке
+      MODBUS->txlen=(uint8_t) (m*2+5); //responce length
+
+    }
+  else
+    {
+      //exception illegal data adress 0x02
+      TX_EXCEPTION(MODBUS,0x02);
+    }
+
 }
 

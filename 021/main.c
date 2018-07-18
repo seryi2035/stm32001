@@ -18,7 +18,7 @@ struct DHT11_Dev dev001;
 int main(void) {
   uint32_t RTC_Counter01 = 0;
   uint32_t RTC_Counter02 = 0;
-  /*int res003;*/
+  uint16_t res003;
   RTC_DateTimeTypeDef RTC_DateTime;
   SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
 
@@ -75,8 +75,19 @@ int main(void) {
         }
       if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
           RTC_Counter01 = RTC_Counter02;
-          read_Coils_RW();
-          setCOILS(Coils_RW);
+          //read_Coils_RW();
+          //setCOILS(Coils_RW);
+          res_table[3] = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          res_table[4] = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          if ( (res003 = DHT11_read(&dev001)) == DHT11_SUCCESS) {
+              res_table[0] = dev001.humidity;
+              res_table[1] = dev001.temparature;
+            }
+          res_table[2] = res003;
+          for (u8 i = 5; i < OBJ_SZ; i++) {
+              res_table[i] = 0;
+            }
+          oprosite();
         }
       /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;

@@ -1,14 +1,14 @@
 //MODBUS
 //#include "modbus.h"
-#define OBJ_SZ 123 //это количество объектов
+#define OBJ_SZ 32 //это количество объектов
 #define SETUP 4 //это просто количество данных в массиве 0-элемент которого означает адрес
 //PARAMETERRS ARRAY 0 PARAMETER = MODBUS ADDRESS
 uint8_t SET_PAR[SETUP];//0-элемент это адрес
 //OBJECT ARRAY WHERE READING AND WRITING OCCURS
-int res_table[OBJ_SZ];//массив с объектами то откуда мы читаем и куда пишем
+uint16_t res_table[OBJ_SZ];//массив с объектами то откуда мы читаем и куда пишем
 float res_ftable[OBJ_SZ];
 //buffer uart
-#define BUF_SZ 256 //размер буфера
+#define BUF_SZ 128 //размер буфера
 #define MODBUS_WRD_SZ (BUF_SZ-5)/2 //максимальное количество регистров в ответе
 //uart structure
 typedef struct UART_DATA {
@@ -29,7 +29,6 @@ struct UART_DATA uart1;//структуры для соответсвующих 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////
 void net_tx1(UART_DATA *uart);
 void MODBUS_SLAVE(UART_DATA *MODBUS);//функция обработки модбас и формирования ответа
-void TX_03_04(UART_DATA *MODBUS);
 void TX_06(UART_DATA *MODBUS);
 void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);
 void TX_66(UART_DATA *MODBUS);
@@ -45,3 +44,5 @@ void read_Discrete_Inputs_RO(void);
 //void startCOILS(uint8_t *Coils_RW);
 void read_Coils_RW(void);
 void TX_05(UART_DATA *MODBUS);
+void TX_04(UART_DATA *MODBUS);
+void TX_03(UART_DATA *MODBUS);

@@ -520,7 +520,7 @@ float schitatfTemp(char* imya) {
   ftemp = (float) ( (float) ((buf[1] << 8) | buf[0]) / 16.0);
   return ftemp;
 }
-int schitatiTemp(char* imya) {
+uint16_t schitatU16Temp(char* imya) {
   uint8_t buf[2];
   u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],
                        (u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
@@ -528,7 +528,7 @@ int schitatiTemp(char* imya) {
   //int itemp;
   //itemp = ((buf[1] << 8) | buf[0]) *1000 / 16;
   //delay_ms(10);
-  return ((int) convT_DS18B20(buf[0], buf[1]));
+  return ((uint16_t) ((buf[1]<<4) + (buf[0]>>4)));
 }
 void oprosite(void) {
   u8 comm[2];
@@ -557,7 +557,7 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
   GPIO_WriteBit(GPIOA, dev->pin,Bit_SET);
   return 0;
 }
-int DHT11_read(struct DHT11_Dev* dev) {
+uint16_t DHT11_read(struct DHT11_Dev* dev) {
   dev->temparature = 0;
   dev->humidity = 0;
   //Initialisation
@@ -575,20 +575,14 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(dev->port, &GPIO_InitStructure);
 
-  //dev->port->MODER |= GPIO_MODER_MODER6_0;
-
   //Put LOW for at least 18ms
   GPIO_ResetBits(dev->port, dev->pin);
-
   delay_ms(18);
   //wait 18ms
-
   //Put HIGH for 20-40us
   GPIO_SetBits(dev->port, dev->pin);
-
   delay_us(40);
   //wait 40us
-
   //End start condition
 
   //io();
@@ -610,15 +604,13 @@ int DHT11_read(struct DHT11_Dev* dev) {
   //Read 40 bits (8*5)
   for(j = 0; j < 5; ++j) {
       for(i = 0; i < 8; ++i) {
-          TIM4->CNT = 0;
+          //TIM4->CNT = 0;
           //LOW for 50us
           while(!GPIO_ReadInputDataBit(dev->port, dev->pin));
-
           /*while(!GPIO_ReadInputDataBit(dev->port, dev->pin)) {
                                           if(TIM2->CNT > 60)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
-
           //Start counter
           TIM4->CNT = 0;
           //HIGH for 26-28us = 0 / 70us = 1
@@ -627,7 +619,6 @@ int DHT11_read(struct DHT11_Dev* dev) {
                                           if(TIM2->CNT > 100)
                                                   return DHT11_ERROR_TIMEOUT;
                                   }*/
-
           //Calc amount of time passed
           temp = TIM4->CNT;
 
