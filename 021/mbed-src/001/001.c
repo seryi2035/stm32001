@@ -150,7 +150,7 @@ void USART1_IRQHandler(void) {
         }
       else {
           //посылка закончилась и мы снимаем высокий уровень сRS485 TXE
-          uart1.buffer[255] = uart1.txlen;
+          //uart1.buffer[255] = uart1.txlen;
           uart1.txlen=0;
           GPIO_WriteBit(USART1PPport, USART1PPpin,Bit_RESET);
           USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);

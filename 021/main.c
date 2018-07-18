@@ -16,9 +16,9 @@
 struct DHT11_Dev dev001;
 
 int main(void) {
-  /*uint32_t RTC_Counter01 = 0;
-    uint32_t RTC_Counter02 = 0;
-    int res003;*/
+  uint32_t RTC_Counter01 = 0;
+  uint32_t RTC_Counter02 = 0;
+  /*int res003;*/
   RTC_DateTimeTypeDef RTC_DateTime;
   SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
 
@@ -39,7 +39,7 @@ int main(void) {
   delay_ms(1000);
   GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
   uart1.delay=150; //modbus gap 9600
-  startCOILS(Coils_RW);
+  //startCOILS(Coils_RW);
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
@@ -72,6 +72,11 @@ int main(void) {
           GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
           //USARTSend("\n\rREADY!!!\n\r");
           //delay_ms(50);*/
+        }
+      if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
+          RTC_Counter01 = RTC_Counter02;
+          read_Coils_RW();
+          setCOILS(Coils_RW);
         }
       /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;

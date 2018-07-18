@@ -42,6 +42,6 @@ uint8_t Coils_RW[32];
 uint8_t Discrete_Inputs_RO[32];
 void setCOILS(uint8_t *Coils_RW);
 void read_Discrete_Inputs_RO(void);
-void startCOILS(uint8_t *Coils_RW);
+//void startCOILS(uint8_t *Coils_RW);
 void read_Coils_RW(void);
 void TX_05(UART_DATA *MODBUS);
