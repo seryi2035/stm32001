@@ -4,6 +4,7 @@
 //#include "libmodbus.h"
 #include "modbus.h"
 
+
 uint16_t crc16(uint8_t *buffer, uint16_t buffer_length);
 // Table of CRC values for high-order byte
 static const uint8_t table_crc_hi[] = {
@@ -82,7 +83,7 @@ uint16_t crc16(uint8_t *buffer, uint16_t buffer_length)
 void net_tx1(UART_DATA *uart) {
 
   //GPIO_WriteBit(USART1PPport,USART1PPpin,Bit_SET);
-  if((uart->txlen>0)&(uart->txcnt==0)) {
+  if((uart->txlen>0) && (uart->txcnt==0)) {
       USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //выкл прерывание на прием
       USART_ITConfig(USART1, USART_IT_TC, ENABLE); //включаем на окочание передачи
       //включаем rs485 на передачу
@@ -93,7 +94,8 @@ void net_tx1(UART_DATA *uart) {
             {
             }
         }*/
-      USART01Send(uart1.buffer);
+      //USART01Send(uart1.buffer);
+      USART_SendData(USART1,(u16) uart->buffer[uart->txcnt++]);
     }
 }
 
@@ -400,8 +402,8 @@ void TX_05(UART_DATA *MODBUS) {
   setCOILS(Coils_RW);
 }
 void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
-  uint32_t tmp,tmp1;
-  uint32_t m=0,n=0;
+  uint16_t tmp,tmp1;
+  uint8_t m=0,n=0;
   uint16_t tmp_val;
 
   //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
@@ -409,9 +411,9 @@ void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
   //MODBUS->buffer[2] = data byte count
 
   //2-3  - starting address
-  tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+  tmp=((((uint16_t)MODBUS->buffer[2])<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
   //4-5 - number of registers
-  tmp1=(uint32_t)((MODBUS->buffer[4]<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+  tmp1=((((uint16_t)MODBUS->buffer[4])<<8)+MODBUS->buffer[5]);//количество регистров для чтения
   //default answer length if error
   n=3;
 
@@ -424,9 +426,9 @@ void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
           n=n+2;
         }
       //запишем длину переменных пакета в байтах и вставим всообщение
-      MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
+      MODBUS->buffer[2]=m * 2; //byte count
       //подготовим к отправке
-      MODBUS->txlen=(uint8_t) (m*2+5); //responce length
+      MODBUS->txlen=m * 2 + 5; //responce length
     } else {
       //exception illegal data adress 0x02
       TX_EXCEPTION(MODBUS,0x02);

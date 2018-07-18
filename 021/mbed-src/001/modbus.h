@@ -1,6 +1,6 @@
 //MODBUS
 //#include "modbus.h"
-#define OBJ_SZ 32 //это количество объектов
+#define OBJ_SZ 36 //это количество объектов
 #define SETUP 4 //это просто количество данных в массиве 0-элемент которого означает адрес
 //PARAMETERRS ARRAY 0 PARAMETER = MODBUS ADDRESS
 uint8_t SET_PAR[SETUP];//0-элемент это адрес
@@ -35,8 +35,8 @@ void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type);
 void TX_01(UART_DATA *MODBUS);
 void TX_02(UART_DATA *MODBUS);
 
-uint8_t Coils_RW[32];
-uint8_t Discrete_Inputs_RO[32];
+uint8_t Coils_RW[OBJ_SZ];
+uint8_t Discrete_Inputs_RO[OBJ_SZ];
 void setCOILS(uint8_t *Coils_RW);
 void read_Discrete_Inputs_RO(void);
 //void startCOILS(uint8_t *Coils_RW);
