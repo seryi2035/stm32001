@@ -126,9 +126,6 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
             case 6:
               TX_06(MODBUS);
               break;
-            case 66:
-              TX_66(MODBUS);
-              break;
             default://если нет то выдаем ошибку
               //illegal operation
               TX_EXCEPTION(MODBUS,0x01);
@@ -184,51 +181,6 @@ void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type)
   MODBUS->buffer[2]=error_type; //exception
   MODBUS->txlen=5; //responce length
 }
-void TX_66(UART_DATA *MODBUS)
-{
-  void oprosite (void);
-  res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-  res_ftable[2] = schitatfTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-  res_table[3] = schitatU16Temp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-  res_table[4] = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-
-  uint32_t tmp;
-
-  //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
-  //MODBUS[1] = 6; //query type - - stay a same as in recived
-
-  //2-3  - adress   , 4-5 - value
-
-  tmp=(uint32_t) ((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
-
-  //MODBUS->buffer[2]  - byte count a same as in rx query
-
-  if(tmp<OBJ_SZ)
-    {
-      MODBUS->txlen=MODBUS->rxcnt; //responce length
-      res_table[tmp]=(MODBUS->buffer[4]<<8)+MODBUS->buffer[5];
-    }
-  else
-    {
-      //illegal data
-      TX_EXCEPTION(MODBUS,0x02) ;
-    }
-
-}
-/*void net_tx3(UART_DATA *uart)
-{
-  if((uart->txlen>0)&(uart->txcnt==0))
-    {
-      USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
-      USART_ITConfig(USART3, USART_IT_TC, ENABLE);
-
-      GPIO_WriteBit(GPIOB,GPIO_Pin_0,Bit_SET);
-      GPIO_WriteBit(GPIOB,GPIO_Pin_1,Bit_SET);
-
-      USART_SendData(USART3, uart->buffer[uart->txcnt++]);
-    }
-
-}*/
 
 void TX_01(UART_DATA *MODBUS) {
   read_Coils_RW();

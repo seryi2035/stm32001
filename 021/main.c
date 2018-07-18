@@ -16,8 +16,8 @@
 struct DHT11_Dev dev001;
 
 int main(void) {
-  uint32_t RTC_Counter01 = 0;
-  uint32_t RTC_Counter02 = 0;
+  uint16_t RTC_Counter01 = 0;
+  uint16_t RTC_Counter02 = 0;
   uint16_t res003;
   RTC_DateTimeTypeDef RTC_DateTime;
   SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
@@ -43,11 +43,11 @@ int main(void) {
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 17;
+      RTC_DateTime.RTC_Date = 18;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 2;
+      RTC_DateTime.RTC_Hours = 4;
       RTC_DateTime.RTC_Minutes = 49;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
@@ -73,21 +73,24 @@ int main(void) {
           //USARTSend("\n\rREADY!!!\n\r");
           //delay_ms(50);*/
         }
-      if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
+      if ( ((RTC_Counter02 = RTC->CNTL) - RTC_Counter01) >= 4) {
           RTC_Counter01 = RTC_Counter02;
           //read_Coils_RW();
           //setCOILS(Coils_RW);
-          res_table[3] = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-          res_table[4] = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-          if ( (res003 = DHT11_read(&dev001)) == DHT11_SUCCESS) {
+          res_table[3] = 0;// schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          res_table[4] = 0;// schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          /*if ( (res003 = DHT11_read(&dev001)) == DHT11_SUCCESS) {
               res_table[0] = dev001.humidity;
               res_table[1] = dev001.temparature;
-            }
-          res_table[2] = res003;
+            }*/
+          res003 = 0;
+          res_table[0] = res003;
+          res_table[0] = res003;
+          res_table[0] = res003;
           for (u8 i = 5; i < OBJ_SZ; i++) {
               res_table[i] = 0;
             }
-          oprosite();
+          //oprosite();
         }
       /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
