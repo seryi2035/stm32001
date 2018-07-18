@@ -511,7 +511,7 @@ imya[3],(u8) imya[4],(u8) imya[5],(u8) imya[6],(u8) imya[7],(u8)'\xbe',(u8) '\xf
   retern  ;
 }
 */
-float schitatfTemp(char* imya) {
+/*float schitatfTemp(char* imya) {
   uint8_t buf[2];
   u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],(u8) imya[4],
                        (u8) imya[5],(u8) imya[6],(u8) imya[7], 0xbe, 0xff, 0xff};
@@ -519,7 +519,7 @@ float schitatfTemp(char* imya) {
   float ftemp;
   ftemp = (float) ( (float) ((buf[1] << 8) | buf[0]) / 16.0);
   return ftemp;
-}
+}*/
 uint16_t schitatU16Temp(char* imya) {
   uint8_t buf[2];
   u8 command01[12] = { 0x55,(u8) imya[0],(u8) imya[1],(u8) imya[2],(u8) imya[3],
@@ -528,7 +528,7 @@ uint16_t schitatU16Temp(char* imya) {
   //int itemp;
   //itemp = ((buf[1] << 8) | buf[0]) *1000 / 16;
   //delay_ms(10);
-  return ((uint16_t) ((buf[1]<<4) + (buf[0]>>4)));
+  return ((uint16_t) ((buf[1]<<8) + (buf[0])));
 }
 void oprosite(void) {
   u8 comm[2];

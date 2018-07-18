@@ -8,7 +8,6 @@
 volatile char RX_FLAG_END_LINE;
 volatile unsigned int RXi;
 volatile char RXc;
-volatile uint8_t RXu;
 char RX_BUF[RX_BUF_SIZE]; //= {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
 u8 RX_BUF08[RX_BUF_SIZE];
 char buffer[80];// = {"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"};
@@ -18,7 +17,7 @@ volatile float fResult;
 volatile int TimeSec;
 volatile uint8_t TimeState;
 volatile uint8_t FLAG_ECHO;
-volatile uint16_t SonarValue;
+uint16_t ds18b20Value;
 // (UnixTime = 00:00:00 01.01.1970 = JD0 = 2440588)
 #define JULIAN_DATE_BASE    2440588
 typedef struct {
@@ -51,7 +50,7 @@ void schitatTemp(char* imya);
 void vvhex(char vv);
 void sendaddrow (void);
 
-float schitatfTemp(char* imya);
+//float schitatfTemp(char* imya);
 uint16_t schitatU16Temp(char* imya);
 void oprosite (void);
 

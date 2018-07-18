@@ -78,8 +78,12 @@ int main(void) {
           RTC_Counter01 = RTC_Counter02;
           //read_Coils_RW();
           //setCOILS(Coils_RW);
-          res_table[3] = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-          res_table[4] = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          ds18b20Value = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          res_table[3] = ds18b20Value >> 4;
+          res_ftable[1] = (float) (ds18b20Value / 16.0);
+          ds18b20Value = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          res_table[4] = ds18b20Value >> 4;
+          res_ftable[2] = (float) (ds18b20Value / 16.0);
           res_table[2] = DHT11_read(&dev001);
           if (res_table[2] == DHT11_SUCCESS) {
               res_table[0] = dev001.humidity;
@@ -91,6 +95,10 @@ int main(void) {
           //res_table[0] = res003;
           for (u8 i = 5; i < OBJ_SZ; i++) {
               res_table[i] = 0;
+            }
+          res_ftable[0] = 0;
+          for (u8 i = 5; i < OBJ_SZ; i++) {
+              res_ftable[i] = 0;
             }
           oprosite();
         }

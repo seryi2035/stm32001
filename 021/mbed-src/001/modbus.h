@@ -44,3 +44,8 @@ void read_Coils_RW(void);
 void TX_05(UART_DATA *MODBUS);
 void TX_04(UART_DATA *MODBUS);
 void TX_03(UART_DATA *MODBUS);
+union FloatU8  {
+  float tmp_val;
+  uint8_t rg[4];
+} f001;
+//typedef union FloatU8 ;
