@@ -13,11 +13,15 @@
 //#include "libmodbus.h"
 #include "modbus.h"
 
+void atSTART(void);
 struct DHT11_Dev dev001;
 
 int main(void) {
-  uint16_t RTC_Counter01 = 0;
-  uint16_t RTC_Counter02 = 0;
+  uint32_t RTC_Counter01 = 0;
+  uint32_t RTC_Counter02 = 0;
+  uint32_t RTC_Counter03 = 0;
+  u8 n = 0;
+  //atSTART();
   //uint16_t res003;
   RTC_DateTimeTypeDef RTC_DateTime;
   SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
@@ -34,34 +38,35 @@ int main(void) {
   dev001.temparature = 0;
   DHT11_init(&dev001, dev001.port, dev001.pin);
   //wwdgenable();
-  GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
   //uart1.rxtimer = 0;
   delay_ms(1000);
-  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+  GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
   uart1.delay=150; //modbus gap 9600
   //startCOILS(Coils_RW);
   oprosite();
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 18;
+      RTC_DateTime.RTC_Date = 19;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 4;
-      RTC_DateTime.RTC_Minutes = 49;
+      RTC_DateTime.RTC_Hours = 17;
+      RTC_DateTime.RTC_Minutes = 25;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
     }
   iwdg_init();
-  //sprintf(buffer, "\n\rREADY!!!%d\n\r", (int) RTC_GetCounter());
-  //USARTSend(buffer);
-  //USARTSend("\n\rREADY!!!\n\r");
-  //USART3Send("\n\rREADY!!!\n\r");
+  Coils_RW[8] = 0;
+
   while (1) {
-      IWDG_ReloadCounter();
+      if (Coils_RW[8] == 0) {
+          IWDG_ReloadCounter();
+        }
+      //IWDG_ReloadCounter();
       if(uart1.rxgap==1) {
           delay_ms(1);
           GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
@@ -74,30 +79,71 @@ int main(void) {
           //USARTSend("\n\rREADY!!!\n\r");
           //delay_ms(50);
         }
-      if ( ((RTC_Counter02 = RTC->CNTL) - RTC_Counter01) >= 4) {
+      if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
           RTC_Counter01 = RTC_Counter02;
           //read_Coils_RW();
           //setCOILS(Coils_RW);
           ds18b20Value = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
           res_table[3] = ds18b20Value >> 4;
-          res_ftable[1] = (float) (ds18b20Value / 16.0);
+          f001.tmp_val_float = (float) (ds18b20Value / 16.0);
+          //res_table[18] = f001.tmp_val_u16[0];
+          //res_table[19] = f001.tmp_val_u16[1];
+          res_table[18] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          res_table[19] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          res_ftable[1] = f001.tmp_val_float;
           ds18b20Value = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
           res_table[4] = ds18b20Value >> 4;
-          res_ftable[2] = (float) (ds18b20Value / 16.0);
+          f001.tmp_val_float = (float) (ds18b20Value / 16.0);
+          //res_table[20] = f001.tmp_val_u16[0];
+          //res_table[21] = f001.tmp_val_u16[1];
+          res_table[20] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          res_table[21] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          res_ftable[2] = f001.tmp_val_float;
           res_table[2] = DHT11_read(&dev001);
+          res_ftable[3] = (float) RTC_Counter01;
           if (res_table[2] == DHT11_SUCCESS) {
               res_table[0] = dev001.humidity;
               res_table[1] = dev001.temparature;
+            }
+          if ( (RTC_Counter02 - RTC_Counter03) >= 60) {
+              n++;
+              if (n > 6) {
+                  if ((res_ftable[3] - res_ftable[4]) > 300) {
+                      Coils_RW[8] = 1;
+                    }
+                }else if (n > 100) {
+                  n = 0;
+                }
+              RTC_Counter03 = RTC_Counter02;
+              RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
+              res_table[5] = RTC_DateTime.RTC_Hours;
+              res_table[6] = RTC_DateTime.RTC_Minutes;
+              res_table[7] = RTC_DateTime.RTC_Seconds;
+              res_table[8] = RTC_DateTime.RTC_Year;
+              res_table[9] = RTC_DateTime.RTC_Month;
+              res_table[10] = RTC_DateTime.RTC_Date;
             }
           //res003 = 0;
           //res_table[2] = res003;
           //res_table[0] = res003;
           //res_table[0] = res003;
-          for (u8 i = 5; i < OBJ_SZ; i++) {
+          for (u8 i = 11; i < 17; i++) {
+              res_table[i] = 0;
+            }
+          /*f001.tmp_val_float = res_ftable[1];
+          res_table[16] = f001.tmp_val_u16[0];
+          res_table[17] = f001.tmp_val_u16[1];
+          f001.tmp_val_float = res_ftable[2];
+          res_table[18] = f001.tmp_val_u16[0];
+          res_table[19] = f001.tmp_val_u16[1];*/
+          f001.tmp_val_float = (float) RTC_Counter01;
+          res_table[22] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          res_table[23] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          for (u8 i = 24; i < OBJ_SZ; i++) {
               res_table[i] = 0;
             }
           res_ftable[0] = 0;
-          for (u8 i = 5; i < OBJ_SZ; i++) {
+          for (u8 i = 6; i < OBJ_SZ; i++) {
               res_ftable[i] = 0;
             }
           oprosite();
@@ -244,3 +290,8 @@ int main(void) {
         }*/
     }
 }
+
+/*void atSTART(void) {
+  Coils_RW[8] = 0;
+}
+*/

@@ -45,7 +45,9 @@ void TX_05(UART_DATA *MODBUS);
 void TX_04(UART_DATA *MODBUS);
 void TX_03(UART_DATA *MODBUS);
 union FloatU8  {
-  float tmp_val;
-  uint8_t rg[4];
+  float tmp_val_float;
+  uint8_t tmp_val_u8[4];
+  uint32_t tmp_val_u32;
+  uint16_t tmp_val_u16[2];
 } f001;
 //typedef union FloatU8 ;

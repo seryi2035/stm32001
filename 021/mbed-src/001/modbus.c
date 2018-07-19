@@ -151,31 +151,6 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
   MODBUS->rxcnt=0;
   MODBUS->rxtimer=0xFFFF;
 }
-void TX_06(UART_DATA *MODBUS)
-{
-  uint32_t tmp;
-
-  //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
-  //MODBUS[1] = 6; //query type - - stay a same as in recived
-
-  //2-3  - adress   , 4-5 - value
-
-  tmp=(uint32_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
-
-  //MODBUS->buffer[2]  - byte count a same as in rx query
-
-  if(tmp<OBJ_SZ)
-    {
-      MODBUS->txlen=MODBUS->rxcnt; //responce length
-      res_table[tmp]=(MODBUS->buffer[4]<<8)+MODBUS->buffer[5];
-    }
-  else
-    {
-      //illegal data
-      TX_EXCEPTION(MODBUS,0x02) ;
-    }
-
-}
 void TX_EXCEPTION(UART_DATA *MODBUS,unsigned char error_type)
 {
   //modbus exception - illegal data=01 ,adress=02 etc
@@ -318,7 +293,7 @@ void setCOILS(uint8_t *Coils_RW) {
   if (Coils_RW[2]) { GPIO_SetBits(GPIOB, GPIO_Pin_10);    } else { GPIO_ResetBits(GPIOB, GPIO_Pin_10);  }
   if (Coils_RW[3]) { GPIO_SetBits(GPIOB, GPIO_Pin_1);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_1);   }
   if (Coils_RW[4]) { GPIO_SetBits(GPIOB, GPIO_Pin_0);     } else { GPIO_ResetBits(GPIOB, GPIO_Pin_0);   }
-}
+  }
 void read_Discrete_Inputs_RO(void) {
 
   if(GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13) == (uint8_t)Bit_SET) { Discrete_Inputs_RO[0] = 1; }else{ Discrete_Inputs_RO[0] = 0;}
@@ -329,8 +304,8 @@ void read_Discrete_Inputs_RO(void) {
   if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)  == (uint8_t)Bit_SET) { Discrete_Inputs_RO[4] = 1; }else{ Discrete_Inputs_RO[4] = 0;}
   if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8)   == (uint8_t)Bit_SET) { Discrete_Inputs_RO[5] = 1; }else{ Discrete_Inputs_RO[5] = 0;}
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[6] = 1; : Discrete_Inputs_RO[6] = 0;
-  //if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   == (uint8_t)Bit_SET) { Discrete_Inputs_RO[6] = 1; }else{ Discrete_Inputs_RO[6] = 0;}
-  Discrete_Inputs_RO[6] = 1;
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   == (uint8_t)Bit_SET) { Discrete_Inputs_RO[6] = 1; }else{ Discrete_Inputs_RO[6] = 0;}
+  //Discrete_Inputs_RO[6] = 1;
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Discrete_Inputs_RO[7] = 1; : Discrete_Inputs_RO[7] = 0;
   if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9)   == (uint8_t)Bit_SET) { Discrete_Inputs_RO[7] = 1; }else{ Discrete_Inputs_RO[7] = 0;}
   /*Discrete_Inputs_RO[0] = 1;
@@ -341,7 +316,7 @@ void read_Discrete_Inputs_RO(void) {
   Discrete_Inputs_RO[5] = 1;
   Discrete_Inputs_RO[6] = 1;
   Discrete_Inputs_RO[7] = 1;*/
-  for(u8 i = 9; i < 16; i++) {
+  for(u8 i = 8; i < 16; i++) {
       Discrete_Inputs_RO[i] = Discrete_Inputs_RO[i-9];
     }
   Discrete_Inputs_RO[8] = Discrete_Inputs_RO[7];
@@ -363,11 +338,12 @@ void read_Coils_RW(void) {
   if(GPIO_ReadOutputDataBit(GPIOB, GPIO_Pin_0)  == (uint8_t)Bit_SET) { Coils_RW[4] = 1; }else{ Coils_RW[4] = 0;}
   if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_8)   == (uint8_t)Bit_SET) { Coils_RW[5] = 1; }else{ Coils_RW[5] = 0;}
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4) == (uint8_t)Bit_SET ? Coils_RW[6] = 1; : Coils_RW[6] = 0;
-  //if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   == (uint8_t)Bit_SET) { Coils_RW[6] = 1; }else{ Coils_RW[6] = 0;}
-  Coils_RW[6] = 1;
+  if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_4)   == (uint8_t)Bit_SET) { Coils_RW[6] = 1; }else{ Coils_RW[6] = 0;}
+  //Coils_RW[6] = 1;
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Coils_RW[7] = 1; : Coils_RW[7] = 0;
   if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9)   == (uint8_t)Bit_SET) { Coils_RW[7] = 1; }else{ Coils_RW[7] = 0;}
-  for(u8 i = 8; i < 16; i++) {
+
+  for(u8 i = 9; i < 16; i++) {
       Coils_RW[i] = Coils_RW[i-8];
     }
   for(u8 i = 16; i < 32; i++) {
@@ -455,12 +431,12 @@ void TX_03(UART_DATA *MODBUS) {
   if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
       for(m=0;m<tmp1;m++)   {
           i = m/2;
-          f001.tmp_val=res_ftable[i+tmp];//читаем текущее значение
+          f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
 
-          MODBUS->buffer[n]=f001.rg[3];
-          MODBUS->buffer[n+1]=f001.rg[2];
-          MODBUS->buffer[n+2]=f001.rg[1];
-          MODBUS->buffer[n+3]=f001.rg[0];
+          MODBUS->buffer[n]=f001.tmp_val_u8[3];
+          MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
+          MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
+          MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
           m++; // ############# Второй раз)))))))))))
           n=n+4;
         }
@@ -472,5 +448,34 @@ void TX_03(UART_DATA *MODBUS) {
       //exception illegal data adress 0x02
       TX_EXCEPTION(MODBUS,0x02);
     }
+}
+void TX_06(UART_DATA *MODBUS) {
+  uint16_t tmp;
+
+  //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
+  //MODBUS[1] = 6; //query type - - stay a same as in recived
+  //2-3  - adress   , 4-5 - value
+  tmp=(uint16_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
+  //MODBUS->buffer[2]  - byte count a same as in rx query
+
+  if(tmp<OBJ_SZ)
+    {
+      f001.tmp_val_float = res_ftable[tmp/2];
+      if (tmp % 2 == 0) {
+          f001.tmp_val_u8[0] = MODBUS->buffer[4];
+          f001.tmp_val_u8[1] = MODBUS->buffer[5];
+        } else {
+          f001.tmp_val_u8[2] = MODBUS->buffer[4];
+          f001.tmp_val_u8[3] = MODBUS->buffer[5];
+        }
+      res_ftable[tmp/2] = f001.tmp_val_float;
+      MODBUS->txlen=MODBUS->rxcnt; //responce length
+    }
+  else
+    {
+      //illegal data
+      TX_EXCEPTION(MODBUS,0x02) ;
+    }
+
 }
 
