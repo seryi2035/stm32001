@@ -128,6 +128,9 @@ void MODBUS_SLAVE(UART_DATA *MODBUS) {
             case 6:
               TX_06(MODBUS);
               break;
+            case 16:
+              TX_16(MODBUS);
+              break;
             default://если нет то выдаем ошибку
               //illegal operation
               TX_EXCEPTION(MODBUS,0x01);
@@ -345,7 +348,7 @@ void read_Coils_RW(void) {
   //GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5) == (uint8_t)Bit_SET ? Coils_RW[7] = 1; : Coils_RW[7] = 0;
   if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_9)   == (uint8_t)Bit_SET) { Coils_RW[7] = 1; }else{ Coils_RW[7] = 0;}
 
-  for(u8 i = 9; i < 16; i++) {
+  for(u8 i = 10; i < 16; i++) {
       Coils_RW[i] = Coils_RW[i-8];
     }
   for(u8 i = 16; i < 32; i++) {
@@ -431,15 +434,24 @@ void TX_03(UART_DATA *MODBUS) {
   n=3;
 
   //если нас устраивает длина запроса и и стартовый адрес
-  if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
+  if((((tmp+tmp1)<OBJ_SZ*2) && (tmp1<MODBUS_WRD_SZ+1)))    {
       for(m=0;m<tmp1;m++)   {
           i = m/2;
-          f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
+          if (i <= 12) {
+              f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
 
-          MODBUS->buffer[n]=f001.tmp_val_u8[3];
-          MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
-          MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
-          MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
+              MODBUS->buffer[n]=f001.tmp_val_u8[3];
+              MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
+              MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
+              MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
+            } else {
+              f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
+
+              MODBUS->buffer[n]=f001.tmp_val_u8[3];
+              MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
+              MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
+              MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
+            }
           m++; // ############# Второй раз)))))))))))
           n=n+4;
         }
@@ -463,15 +475,15 @@ void TX_06(UART_DATA *MODBUS) {
 
   if(tmp<OBJ_SZ)
     {
-      f001.tmp_val_float = res_ftable[tmp/2];
+      f001.tmp_val_float = res_ftable[tmp - tmp%2];
       if (tmp % 2 == 0) {
-          f001.tmp_val_u8[0] = MODBUS->buffer[4];
-          f001.tmp_val_u8[1] = MODBUS->buffer[5];
+          f001.tmp_val_u8[3] = MODBUS->buffer[4];
+          f001.tmp_val_u8[2] = MODBUS->buffer[5];
         } else {
-          f001.tmp_val_u8[2] = MODBUS->buffer[4];
-          f001.tmp_val_u8[3] = MODBUS->buffer[5];
+          f001.tmp_val_u8[1] = MODBUS->buffer[4];
+          f001.tmp_val_u8[0] = MODBUS->buffer[5];
         }
-      res_ftable[tmp/2] = f001.tmp_val_float;
+      res_ftable[tmp - tmp%2] = f001.tmp_val_float;
       MODBUS->txlen=MODBUS->rxcnt; //responce length
     }
   else
@@ -515,4 +527,81 @@ void coilFROMback(void) {
           tmp_val_pos = BKP_ReadBackupRegister(BKP_DR2);
         }
     }
+}
+/*void TX_16(UART_DATA *MODBUS) {
+  uint16_t tmp, tmp1;
+  uint16_t m=0,n=0;
+  u8 i;
+  //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
+  //MODBUS[1] = 6; //query type - - stay a same as in recived
+  ///2-3  - starting address
+  tmp=((((uint16_t)MODBUS->buffer[2])<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+  //4-5 - number of registers
+  tmp1=((((uint16_t)MODBUS->buffer[4])<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+  //default answer length if error
+  n=3;
+
+  if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
+      for(m=0;m<tmp1;m++)   {
+          i = m/2;
+
+
+          MODBUS->buffer[n]=f001.tmp_val_u8[3];
+          MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
+          MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
+          MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
+          f001.tmp_val_float=res_ftable[i+tmp];//пишем текущее значение
+          m++; // ############# Второй раз)))))))))))
+          n=n+4;
+        }
+      MODBUS->txlen=8;
+    } else {
+      //illegal data
+      TX_EXCEPTION(MODBUS,0x02) ;
+    }
+
+}
+*/
+void TX_16(UART_DATA *MODBUS) {
+  uint16_t tmp, tmp1;
+  //uint16_t n=0;
+  //u8 i;
+  //MODBUS[0] =SET_PAR[0]; // adress - stays a same as in recived
+  //MODBUS[1] = 6; //query type - - stay a same as in recived
+  ///2-3  - starting address
+  tmp=((((uint16_t)MODBUS->buffer[2])<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
+  //4-5 - number of registers
+  tmp1=((((uint16_t)MODBUS->buffer[4])<<8)+MODBUS->buffer[5]);//количество регистров для чтения
+  //default answer length if error
+  //MODBUS->buffer[6] == 2
+  //n=7;
+  if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
+      f001.tmp_val_float = res_ftable[tmp - tmp%2];
+      if (tmp % 2 == 0) {
+          f001.tmp_val_u16[0] = (uint16_t) ((MODBUS->buffer[8]<<8) + MODBUS->buffer[7]);
+
+        } else {
+          f001.tmp_val_u16[1] = (uint16_t) ((MODBUS->buffer[8]<<8) + MODBUS->buffer[7]);
+        }
+      res_ftable[tmp - tmp%2] = f001.tmp_val_float;
+      /* }
+  if((((tmp+tmp1)<OBJ_SZ*2) && (tmp1<MODBUS_WRD_SZ+1)))    {
+      for(m=0;m<tmp1;m++)   {
+          i = (m+tmp)/2;
+
+
+          MODBUS->buffer[n]=f001.tmp_val_u8[3];
+          MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
+          MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
+          MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
+          f001.tmp_val_float=res_ftable[i+tmp];//пишем текущее значение
+          m++; // ############# Второй раз)))))))))))
+          n=n+4;
+        }*/
+      MODBUS->txlen=8;
+    } else {
+      //illegal data
+      TX_EXCEPTION(MODBUS,0x02) ;
+    }
+
 }

@@ -49,7 +49,10 @@ union FloatU8  {
   uint8_t tmp_val_u8[4];
   uint32_t tmp_val_u32;
   uint16_t tmp_val_u16[2];
+  int16_t tmp_val_i16[2];
+  int32_t tmp_val_i32;
 } f001;
 //typedef union FloatU8 ;
 void coilTOback(void);
 void coilFROMback(void);
+void TX_16(UART_DATA *MODBUS);

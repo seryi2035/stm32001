@@ -52,8 +52,8 @@ int main(void) {
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 0;
-      RTC_DateTime.RTC_Minutes = 32;
+      RTC_DateTime.RTC_Hours = 3;
+      RTC_DateTime.RTC_Minutes = 51;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
@@ -126,7 +126,7 @@ int main(void) {
           //res_table[2] = res003;
           //res_table[0] = res003;
           //res_table[0] = res003;
-          for (u8 i = 11; i < 17; i++) {
+          for (u8 i = 13; i < 17; i++) {
               res_table[i] = 0;
             }
           /*f001.tmp_val_float = res_ftable[1];
@@ -138,14 +138,32 @@ int main(void) {
           f001.tmp_val_float = (float) RTC_Counter01;
           res_table[22] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
           res_table[23] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          for (u8 i = 24; i < OBJ_SZ; i++) {
+          f001.tmp_val_float = res_ftable[5];
+          res_table[24] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          res_table[25] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          /*for (u8 i = 24; i < OBJ_SZ; i++) {
               res_table[i] = 0;
-            }
+            }*/
           res_ftable[0] = 0;
-          for (u8 i = 6; i < OBJ_SZ; i++) {
+          /*for (u8 i = 6; i < 12; i++) {
+              res_ftable[i] = 0;
+            }*/
+
+          f001.tmp_val_float = res_ftable[13];
+          uint16_t a002 = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          res_table[11] = f001.tmp_val_u16[1] +f001.tmp_val_u16[0];
+          res_table[12] = a002 +f001.tmp_val_u16[0];
+          for (u8 i = 16; i < OBJ_SZ; i++) {
               res_ftable[i] = 0;
             }
           oprosite();
+          if (Coils_RW[9] != 0) {
+              //res_table[11] = (uint16_t) res_ftable[5];
+              RTC_Counter02 = RTC_Counter02 + ((uint32_t)res_table[11]);
+              RTC_SetCounter(RTC_Counter02);
+              //res_ftable[5] = 0;
+              Coils_RW[9] = 0;
+            }
         }
       /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
             RTC_Counter01 = RTC_Counter02;
