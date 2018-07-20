@@ -206,6 +206,7 @@ unsigned char RTC_Init(void) {
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
   // Разрешить доступ к области резервных данных
   PWR_BackupAccessCmd(ENABLE);
+
   // Если RTC выключен - инициализировать
   if((RCC->BDCR & RCC_BDCR_RTCEN) != RCC_BDCR_RTCEN) {
       // Сброс данных в резервной области

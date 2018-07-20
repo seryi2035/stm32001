@@ -21,7 +21,7 @@ int main(void) {
   uint32_t RTC_Counter02 = 0;
   uint32_t RTC_Counter03 = 0;
   u8 n = 0;
-  //atSTART();
+
   //uint16_t res003;
   RTC_DateTimeTypeDef RTC_DateTime;
   SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
@@ -43,24 +43,23 @@ int main(void) {
   delay_ms(1000);
   GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
   uart1.delay=150; //modbus gap 9600
-  //startCOILS(Coils_RW);
+  atSTART();
   oprosite();
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 19;
+      RTC_DateTime.RTC_Date = 20;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 17;
-      RTC_DateTime.RTC_Minutes = 25;
+      RTC_DateTime.RTC_Hours = 0;
+      RTC_DateTime.RTC_Minutes = 32;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
     }
   iwdg_init();
-  Coils_RW[8] = 0;
 
   while (1) {
       if (Coils_RW[8] == 0) {
@@ -291,7 +290,9 @@ int main(void) {
     }
 }
 
-/*void atSTART(void) {
+void atSTART(void) {
+  coilFROMback(); //######################################## coilFROMback();coilFROMback();coilFROMback();
   Coils_RW[8] = 0;
+  setCOILS(Coils_RW);
 }
-*/
+

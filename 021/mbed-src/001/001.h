@@ -1,4 +1,5 @@
 #include "stm32f10x.h"
+#include "stm32f10x_bkp.h"
 
 #define PERIOD 1000
 #define SYSCLK 72000000

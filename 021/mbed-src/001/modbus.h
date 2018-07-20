@@ -51,3 +51,5 @@ union FloatU8  {
   uint16_t tmp_val_u16[2];
 } f001;
 //typedef union FloatU8 ;
+void coilTOback(void);
+void coilFROMback(void);
