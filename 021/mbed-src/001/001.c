@@ -284,7 +284,7 @@ uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct) {  // Conve
   uint32_t JDN;
 
   a =(uint32_t) ( (14 - RTC_DateTimeStruct->RTC_Month) / 12);
-  y =(uint32_t) ( RTC_DateTimeStruct->RTC_Year + 4800 - (u8)a);
+  y =(uint32_t) ( RTC_DateTimeStruct->RTC_Year + 4800 - a);
   m =(uint32_t) ( RTC_DateTimeStruct->RTC_Month + (12 * a) - 3);
 
   JDN = RTC_DateTimeStruct->RTC_Date;

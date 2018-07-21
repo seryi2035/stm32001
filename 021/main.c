@@ -47,12 +47,12 @@ int main(void) {
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 20;
+      RTC_DateTime.RTC_Date = 21;
       RTC_DateTime.RTC_Month = 7;
       RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 3;
-      RTC_DateTime.RTC_Minutes = 51;
+      RTC_DateTime.RTC_Hours = 14;
+      RTC_DateTime.RTC_Minutes = 8;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
@@ -82,11 +82,11 @@ int main(void) {
           //setCOILS(Coils_RW);
           ds18b20Value = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
           input_reg.tmp_u16[3] = ds18b20Value >> 4;                    //Number STM10DS001 "DS001Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:3]"}
-          input_reg.tmp_float[10] = (float) (ds18b20Value / 16.0);     //Number STM10DS01f "DS01 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:1]"}
+          input_reg.tmp_float[9] = (float) (ds18b20Value / 16.0);     //Number STM10DS01f "DS01 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:1]"}
           hold_reg.tmp_float[1] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS001 "DS001Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:1"}
           ds18b20Value = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
           input_reg.tmp_u16[4] = ds18b20Value >> 4;                    //Number STM10DS002 "DS002Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:4]"}
-          input_reg.tmp_float[11] = (float) (ds18b20Value / 16.0);     //Number STM10DS02f "DS02 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:2]"}
+          input_reg.tmp_float[10] = (float) (ds18b20Value / 16.0);     //Number STM10DS02f "DS02 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:2]"}
           hold_reg.tmp_float[2] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS002 "DS002Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:2"}
           input_reg.tmp_u16[2] = DHT11_read(&dev001);                  //Number STM10DHTres "DHTstatus [%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:2]"}
           hold_reg.tmp_float[3] = (float) RTC_Counter01;                   //Number STMfloatcount "STM10countRW [%.2f]"          (smt32modbus10RW)     {modbus="<[slave10_3:3], >[slave10_3:4]"}
@@ -97,12 +97,13 @@ int main(void) {
           if ( (RTC_Counter02 - RTC_Counter03) >= 60) {
               n++;
               if (n > 6) {
-                  if ((hold_reg.tmp_float[3] - hold_reg.tmp_float[4]) > 300) {
+                  if ((hold_reg.tmp_u16[24] - hold_reg.tmp_u16[25]) > 5) {
                       Coils_RW[8] = 1;
                     }
                 }else if (n > 100) {
                   n = 0;
                 }
+              hold_reg.tmp_u16[24] = hold_reg.tmp_u16[24] + 1;
               RTC_Counter03 = RTC_Counter02;
               RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
               input_reg.tmp_u16[5] = RTC_DateTime.RTC_Hours;          //Number STM10hour   "hour [%d]"                 (smt32modbus10RO)     {modbus="<[slave10_4:5]"}
@@ -112,26 +113,24 @@ int main(void) {
               input_reg.tmp_u16[9] = RTC_DateTime.RTC_Month;          //Number STM10month  "month [%d]"                (smt32modbus10RO)     {modbus="<[slave10_4:9]"}
               input_reg.tmp_u16[10] = RTC_DateTime.RTC_Date;          //Number STM10date  "date [%d]"                  (smt32modbus10RO)     {modbus="<[slave10_4:10]"}
             }
-          /*//res003 = 0;
-          //res_table[2] = res003;
-          //res_table[0] = res003;
-          //res_table[0] = res003;
-          f001.tmp_val_float = res_ftable[1];
-          res_table[16] = f001.tmp_val_u16[0];
-          res_table[17] = f001.tmp_val_u16[1];
-          f001.tmp_val_float = res_ftable[2];
-          res_table[18] = f001.tmp_val_u16[0];
-          res_table[19] = f001.tmp_val_u16[1];*/
-          input_reg.tmp_float[12] = (float) RTC_Counter01;             //Number STM10count "count [%.1f ]"              (smt32modbus10RO)     {modbus="<[slave10_402:3]"}
-                                                                           //Number STMfcountppRW "STM10countppRW [%.2f]"        (smt32modbus10RW)     {modbus=">[slave10_3:5]"}
-          input_reg.tmp_float[13] = hold_reg.tmp_float[5];             //Number STM10countfPPro "countfPPro [%.1f]"     (smt32modbus10RO)     {modbus="<[slave10_402:4]"}
-          input_reg.tmp_u16[11] = hold_reg.tmp_u16[26];                //Number STM10countPPRO  "ROcountPP [%d]"        (smt32modbus10RO)     {modbus="<[slave10_4:11]"}
-                                                                           //Number STMucountPP   "STM10fcountRWPP [%d]"         (smt32modbus10RW)     {modbus="slave10_302:2"}
-                                                                           //Number STMucountprov "STM10countRWprov [%d]"        (smt32modbus10RW)     {modbus="<[slave10_302:0], >[slave10_302:1]"}
-                                                                           //Number STMucountprov "STM10countRWprov1 [%d]"       (smt32modbus10RW)     {modbus="slave10_302:1"}
+          input_reg.tmp_float[11] = (float) RTC_Counter01;             //Number STM10count "count [%.1f ]"              (smt32modbus10RO)     {modbus="<[slave10_402:3]"}
+          //Number STMfcountppRW "STM10countppRW [%.2f]"        (smt32modbus10RW)     {modbus=">[slave10_3:5]"}
+          input_reg.tmp_float[12] = hold_reg.tmp_float[5];             //Number STM10countfPPro "countfPPro [%.1f]"     (smt32modbus10RO)     {modbus="<[slave10_402:4]"}
+          input_reg.tmp_u16[11] = hold_reg.tmp_u16[27];                //Number STM10countPPRO  "ROcountPP [%d]"        (smt32modbus10RO)     {modbus="<[slave10_4:11]"}
+          //Number STMucountPP   "STM10fcountRWPP [%d]"         (smt32modbus10RW)     {modbus="slave10_302:2"}
+
+          //Number STMucountprov "STM10countRWprov [%d]"        (smt32modbus10RW)     {modbus="<[slave10_302:0], >[slave10_302:1]"}
+          //Number STMucountprov1 "STM10countRWprov1 [%d]"       (smt32modbus10RW)     {modbus="slave10_302:1"}
+          hold_reg.tmp_u16[26] = hold_reg.tmp_u16[27];                 //prov2
+          //hold_reg.tmp_u16[26] = (u16) hold_reg.tmp_u16[24] + 1;
           oprosite();
           if (Coils_RW[9] != 0) {
-              RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_u16[11]);
+              if (input_reg.tmp_i16[11] > 0) {
+                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[11]);
+                } else {
+                  input_reg.tmp_i16[11] = input_reg.tmp_i16[11] * (-1);
+                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[11]);
+                }
               RTC_SetCounter(RTC_Counter02);
               //res_ftable[5] = 0;
               Coils_RW[9] = 0;
@@ -287,6 +286,6 @@ void atSTART(void) {
   for(u8 i = 0; i < OBJ_SZ; i++) {
       input_reg.tmp_u32[i] = 0;
       hold_reg.tmp_u32[i] = 0;
-  }
+    }
 }
 

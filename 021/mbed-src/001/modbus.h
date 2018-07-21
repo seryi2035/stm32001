@@ -56,11 +56,14 @@ union FloatU8  {
 void coilTOback(void);
 void coilFROMback(void);
 void TX_16(UART_DATA *MODBUS);
-union REGISTRS001  {
+typedef union   {
   float tmp_float[OBJ_SZ];
   uint8_t tmp_u8[OBJ_SZ*4];
   uint32_t tmp_u32[OBJ_SZ];
   uint16_t tmp_u16[OBJ_SZ*2];
   int16_t tmp_i16[OBJ_SZ*2];
   int32_t tmp_i32[OBJ_SZ];
-} hold_reg, input_reg;
+} REGISTRS001;
+REGISTRS001 hold_reg;
+REGISTRS001 input_reg;
+//hold_reg, input_reg;
