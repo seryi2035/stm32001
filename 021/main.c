@@ -97,7 +97,7 @@ int main(void) {
           if ( (RTC_Counter02 - RTC_Counter03) >= 60) {
               n++;
               if (n > 6) {
-                  if ((hold_reg.tmp_u16[24] - hold_reg.tmp_u16[25]) > 5) {
+                  if ((hold_reg.tmp_u16[24] - hold_reg.tmp_u16[25]) > 10) {
                       Coils_RW[8] = 1;
                     }
                 }else if (n > 100) {
@@ -121,7 +121,7 @@ int main(void) {
 
           //Number STMucountprov "STM10countRWprov [%d]"        (smt32modbus10RW)     {modbus="<[slave10_302:0], >[slave10_302:1]"}
           //Number STMucountprov1 "STM10countRWprov1 [%d]"       (smt32modbus10RW)     {modbus="slave10_302:1"}
-          hold_reg.tmp_u16[26] = hold_reg.tmp_u16[27];                 //prov2
+          hold_reg.tmp_u16[26] = hold_reg.tmp_u16[25];                 //prov2
           //hold_reg.tmp_u16[26] = (u16) hold_reg.tmp_u16[24] + 1;
           oprosite();
           if (Coils_RW[9] != 0) {
