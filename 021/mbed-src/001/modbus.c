@@ -402,7 +402,7 @@ void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
   //если нас устраивает длина запроса и и стартовый адрес
   if(((tmp+tmp1) < OBJ_SZ) && (tmp1 < MODBUS_WRD_SZ+1)) {
       for(m=0;m<tmp1;m++)    {
-          tmp_val=res_table[m+tmp];//читаем текущее значение uint16_t
+          tmp_val=input_reg.tmp_u16[m+tmp];//читаем текущее значение uint16_t
           MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
           MODBUS->buffer[n+1]=(uint8_t) tmp_val;
           n=n+2;
@@ -417,12 +417,8 @@ void TX_04(UART_DATA *MODBUS) {  //Read Input Registers
     }
 }
 void TX_03(UART_DATA *MODBUS) {
-  uint16_t tmp,tmp1;
+  uint16_t tmp,tmp1, tmp_val = 0;
   uint16_t m=0,n=0;
-  u8 i;
-  //float tmp_val;
-
-
   //MODBUS->buffer[0] =SET_PAR[0]; // adress - stays a same as in received
   //MODBUS->buffer[1] = 3; //query type - - stay a same as in recived
   //MODBUS->buffer[2] = data byte count
@@ -435,25 +431,11 @@ void TX_03(UART_DATA *MODBUS) {
 
   //если нас устраивает длина запроса и и стартовый адрес
   if((((tmp+tmp1)<OBJ_SZ*2) && (tmp1<MODBUS_WRD_SZ+1)))    {
-      for(m=0;m<tmp1;m++)   {
-          i = m/2;
-          if (i <= 12) {
-              f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
-
-              MODBUS->buffer[n]=f001.tmp_val_u8[3];
-              MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
-              MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
-              MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
-            } else {
-              f001.tmp_val_float=res_ftable[i+tmp];//читаем текущее значение
-
-              MODBUS->buffer[n]=f001.tmp_val_u8[3];
-              MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
-              MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
-              MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
-            }
-          m++; // ############# Второй раз)))))))))))
-          n=n+4;
+      for(m=0;m<tmp1;m++)    {
+          tmp_val=hold_reg.tmp_u16[m+tmp];//читаем текущее значение uint16_t
+          MODBUS->buffer[n]=(uint8_t) (tmp_val>>8);
+          MODBUS->buffer[n+1]=(uint8_t) tmp_val;
+          n=n+2;
         }
       //запишем длину переменных пакета в байтах и вставим всообщение
       MODBUS->buffer[2]=(uint8_t) (m*2); //byte count
@@ -473,17 +455,9 @@ void TX_06(UART_DATA *MODBUS) {
   tmp=(uint16_t)((MODBUS->buffer[2]<<8)+MODBUS->buffer[3]); //adress
   //MODBUS->buffer[2]  - byte count a same as in rx query
 
-  if(tmp<OBJ_SZ)
-    {
-      f001.tmp_val_float = res_ftable[tmp - tmp%2];
-      if (tmp % 2 == 0) {
-          f001.tmp_val_u8[3] = MODBUS->buffer[4];
-          f001.tmp_val_u8[2] = MODBUS->buffer[5];
-        } else {
-          f001.tmp_val_u8[1] = MODBUS->buffer[4];
-          f001.tmp_val_u8[0] = MODBUS->buffer[5];
-        }
-      res_ftable[tmp - tmp%2] = f001.tmp_val_float;
+  if(tmp<OBJ_SZ)  {
+      hold_reg.tmp_u16[tmp] =((((uint16_t)MODBUS->buffer[4])<<8)+MODBUS->buffer[5]);
+
       MODBUS->txlen=MODBUS->rxcnt; //responce length
     }
   else
@@ -570,20 +544,13 @@ void TX_16(UART_DATA *MODBUS) {
   //MODBUS[1] = 6; //query type - - stay a same as in recived
   ///2-3  - starting address
   tmp=((((uint16_t)MODBUS->buffer[2])<<8)+MODBUS->buffer[3]); //стратовый адрес для чтения
-  //4-5 - number of registers
+  //2-3  - adress   , 4-5 - number of value 6==2 num bytes 7-8 value
   tmp1=((((uint16_t)MODBUS->buffer[4])<<8)+MODBUS->buffer[5]);//количество регистров для чтения
   //default answer length if error
   //MODBUS->buffer[6] == 2
   //n=7;
   if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
-      f001.tmp_val_float = res_ftable[tmp - tmp%2];
-      if (tmp % 2 == 0) {
-          f001.tmp_val_u16[0] = (uint16_t) ((MODBUS->buffer[8]<<8) + MODBUS->buffer[7]);
-
-        } else {
-          f001.tmp_val_u16[1] = (uint16_t) ((MODBUS->buffer[8]<<8) + MODBUS->buffer[7]);
-        }
-      res_ftable[tmp - tmp%2] = f001.tmp_val_float;
+      hold_reg.tmp_u16[tmp] =((((uint16_t)MODBUS->buffer[7])<<8)+MODBUS->buffer[8]);
       /* }
   if((((tmp+tmp1)<OBJ_SZ*2) && (tmp1<MODBUS_WRD_SZ+1)))    {
       for(m=0;m<tmp1;m++)   {

@@ -5,8 +5,8 @@
 //PARAMETERRS ARRAY 0 PARAMETER = MODBUS ADDRESS
 uint8_t SET_PAR[SETUP];//0-элемент это адрес
 //OBJECT ARRAY WHERE READING AND WRITING OCCURS
-uint16_t res_table[OBJ_SZ];//массив с объектами то откуда мы читаем и куда пишем
-float res_ftable[OBJ_SZ];
+//uint16_t res_table[OBJ_SZ];//массив с объектами то откуда мы читаем и куда пишем
+//float res_ftable[OBJ_SZ];
 //buffer uart
 #define BUF_SZ 128 //размер буфера
 #define MODBUS_WRD_SZ (BUF_SZ-5)/2 //максимальное количество регистров в ответе
@@ -56,3 +56,11 @@ union FloatU8  {
 void coilTOback(void);
 void coilFROMback(void);
 void TX_16(UART_DATA *MODBUS);
+union REGISTRS001  {
+  float tmp_float[OBJ_SZ];
+  uint8_t tmp_u8[OBJ_SZ*4];
+  uint32_t tmp_u32[OBJ_SZ];
+  uint16_t tmp_u16[OBJ_SZ*2];
+  int16_t tmp_i16[OBJ_SZ*2];
+  int32_t tmp_i32[OBJ_SZ];
+} hold_reg, input_reg;

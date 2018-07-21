@@ -539,7 +539,7 @@ void oprosite(void) {
   delay_ms(100);
   comm[1] = 0x4e;
   OW_Send(OW_SEND_RESET, comm, 2, NULL, 0, OW_NO_READ);
-  delay_ms(100);
+  //delay_ms(100);
   //USARTSend("oprosheno\n\r");
 }
 // ////////////////////////////////////////////////////////DHT11

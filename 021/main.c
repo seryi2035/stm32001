@@ -67,14 +67,14 @@ int main(void) {
         }
       //IWDG_ReloadCounter();
       if(uart1.rxgap==1) {
-          delay_ms(1);
-          GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+          //delay_ms(1);
+          //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
           GPIO_SetBits(USART1PPport, USART1PPpin);
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
-          delay_ms(1);
+          //delay_ms(1);
           GPIO_ResetBits(USART1PPport, USART1PPpin);
-          GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+          //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
           //USARTSend("\n\rREADY!!!\n\r");
           //delay_ms(50);
         }
@@ -83,31 +83,31 @@ int main(void) {
           //read_Coils_RW();
           //setCOILS(Coils_RW);
           ds18b20Value = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-          res_table[3] = ds18b20Value >> 4;
-          f001.tmp_val_float = (float) (ds18b20Value / 16.0);
+          input_reg.tmp_u16[3] = ds18b20Value >> 4;                    //Number STM10DS001 "DS001Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:3]"}
+          input_reg.tmp_float[10] = (float) (ds18b20Value / 16.0);
           //res_table[18] = f001.tmp_val_u16[0];
           //res_table[19] = f001.tmp_val_u16[1];
-          res_table[18] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
-          res_table[19] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          res_ftable[1] = f001.tmp_val_float;
+          //res_table[18] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          //res_table[19] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          hold_reg.tmp_float[1] = (float) (ds18b20Value / 16.0);
           ds18b20Value = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-          res_table[4] = ds18b20Value >> 4;
-          f001.tmp_val_float = (float) (ds18b20Value / 16.0);
+          input_reg.tmp_u16[4] = ds18b20Value >> 4;                    //Number STM10DS002 "DS002Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:4]"}
+          input_reg.tmp_float[11] = (float) (ds18b20Value / 16.0);
           //res_table[20] = f001.tmp_val_u16[0];
           //res_table[21] = f001.tmp_val_u16[1];
-          res_table[20] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
-          res_table[21] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          res_ftable[2] = f001.tmp_val_float;
-          res_table[2] = DHT11_read(&dev001);
-          res_ftable[3] = (float) RTC_Counter01;
-          if (res_table[2] == DHT11_SUCCESS) {
-              res_table[0] = dev001.humidity;
-              res_table[1] = dev001.temparature;
+          //res_table[20] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          //res_table[21] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          hold_reg.tmp_float[2] = (float) (ds18b20Value / 16.0);
+          input_reg.tmp_u16[2] = DHT11_read(&dev001);
+          hold_reg.tmp_float[3] = (float) RTC_Counter01;
+          if (input_reg.tmp_u16[2] == DHT11_SUCCESS) {                //Number STM10DHTres "DHTstatus [%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:2]"}
+              input_reg.tmp_u16[0] = dev001.humidity;                 //Number STM10DHThum "humidity [%d %%]"          (smt32modbus10RO)     {modbus="<[slave10_4:0]"}
+              input_reg.tmp_u16[1] = dev001.temparature;              //Number STM10DHTtemp "DHTtemp [%d °C]"          (smt32modbus10RO)     {modbus="<[slave10_4:1]"}
             }
           if ( (RTC_Counter02 - RTC_Counter03) >= 60) {
               n++;
               if (n > 6) {
-                  if ((res_ftable[3] - res_ftable[4]) > 300) {
+                  if ((hold_reg.tmp_float[3] - hold_reg.tmp_float[4]) > 300) {
                       Coils_RW[8] = 1;
                     }
                 }else if (n > 100) {
@@ -115,51 +115,35 @@ int main(void) {
                 }
               RTC_Counter03 = RTC_Counter02;
               RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
-              res_table[5] = RTC_DateTime.RTC_Hours;
-              res_table[6] = RTC_DateTime.RTC_Minutes;
-              res_table[7] = RTC_DateTime.RTC_Seconds;
-              res_table[8] = RTC_DateTime.RTC_Year;
-              res_table[9] = RTC_DateTime.RTC_Month;
-              res_table[10] = RTC_DateTime.RTC_Date;
+              input_reg.tmp_u16[5] = RTC_DateTime.RTC_Hours;          //Number STM10hour   "hour [%d]"                 (smt32modbus10RO)     {modbus="<[slave10_4:5]"}
+              input_reg.tmp_u16[6] = RTC_DateTime.RTC_Minutes;        //Number STM10minute   "minute [:%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:6]"}
+              input_reg.tmp_u16[7] = RTC_DateTime.RTC_Seconds;        //Number STM10second  "seconds [:%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:7]"}
+              input_reg.tmp_u16[8] = RTC_DateTime.RTC_Year;           //Number STM10year  "year [%d]"                  (smt32modbus10RO)     {modbus="<[slave10_4:8]"}
+              input_reg.tmp_u16[9] = RTC_DateTime.RTC_Month;          //Number STM10month  "month [%d]"                (smt32modbus10RO)     {modbus="<[slave10_4:9]"}
+              input_reg.tmp_u16[10] = RTC_DateTime.RTC_Date;          //Number STM10date  "date [%d]"                  (smt32modbus10RO)     {modbus="<[slave10_4:10]"}
             }
           //res003 = 0;
           //res_table[2] = res003;
           //res_table[0] = res003;
           //res_table[0] = res003;
-          for (u8 i = 13; i < 17; i++) {
-              res_table[i] = 0;
-            }
           /*f001.tmp_val_float = res_ftable[1];
           res_table[16] = f001.tmp_val_u16[0];
           res_table[17] = f001.tmp_val_u16[1];
           f001.tmp_val_float = res_ftable[2];
           res_table[18] = f001.tmp_val_u16[0];
           res_table[19] = f001.tmp_val_u16[1];*/
-          f001.tmp_val_float = (float) RTC_Counter01;
-          res_table[22] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
-          res_table[23] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          f001.tmp_val_float = res_ftable[5];
-          res_table[24] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
-          res_table[25] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          /*for (u8 i = 24; i < OBJ_SZ; i++) {
-              res_table[i] = 0;
-            }*/
-          res_ftable[0] = 0;
-          /*for (u8 i = 6; i < 12; i++) {
-              res_ftable[i] = 0;
-            }*/
+          input_reg.tmp_float[12] = (float) RTC_Counter01;
+          //res_table[22] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          //res_table[23] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          input_reg.tmp_float[13] = hold_reg.tmp_float[5];
+          //res_table[24] = (uint16_t) ((f001.tmp_val_u8[3]<<8) + f001.tmp_val_u8[2]);
+          //res_table[25] = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
+          input_reg.tmp_u16[11] = hold_reg.tmp_u16[26];
 
-          f001.tmp_val_float = res_ftable[13];
-          uint16_t a002 = (uint16_t) ((f001.tmp_val_u8[1]<<8) + f001.tmp_val_u8[0]);
-          res_table[11] = f001.tmp_val_u16[1] +f001.tmp_val_u16[0];
-          res_table[12] = a002 +f001.tmp_val_u16[0];
-          for (u8 i = 16; i < OBJ_SZ; i++) {
-              res_ftable[i] = 0;
-            }
           oprosite();
           if (Coils_RW[9] != 0) {
               //res_table[11] = (uint16_t) res_ftable[5];
-              RTC_Counter02 = RTC_Counter02 + ((uint32_t)res_table[11]);
+              RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_u16[11]);
               RTC_SetCounter(RTC_Counter02);
               //res_ftable[5] = 0;
               Coils_RW[9] = 0;
@@ -312,5 +296,9 @@ void atSTART(void) {
   coilFROMback(); //######################################## coilFROMback();coilFROMback();coilFROMback();
   Coils_RW[8] = 0;
   setCOILS(Coils_RW);
+  for(u8 i = 0; i < OBJ_SZ; i++) {
+      input_reg.tmp_u32[i] = 0;
+      hold_reg.tmp_u32[i] = 0;
+  }
 }
 
