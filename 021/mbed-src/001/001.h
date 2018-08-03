@@ -61,6 +61,7 @@ void oprosite (void);
 typedef struct DHT11_Dev {
   uint8_t temparature;
   uint8_t humidity;
+  uint8_t pointtemparature;
   GPIO_TypeDef* port;
   uint16_t pin;
 } DHT11_Dev;

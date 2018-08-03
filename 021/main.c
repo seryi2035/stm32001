@@ -21,10 +21,13 @@ int main(void) {
   uint32_t RTC_Counter02 = 0;
   uint32_t RTC_Counter03 = 0;
   u8 n = 0;
+  // Включить тактирование модулей управления питанием и управлением резервной областью
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+  // Разрешить доступ к области резервных данных
+  PWR_BackupAccessCmd(ENABLE);
 
   //uint16_t res003;
-  RTC_DateTimeTypeDef RTC_DateTime;
-  SET_PAR[0] = 10; //адрес этого устройства 10 (modbus) 1-247
+  SET_PAR[0] = 20; //адрес этого устройства 10 (modbus) 1-247
 
   GETonGPIO();
   TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
@@ -36,6 +39,7 @@ int main(void) {
   dev001.pin = GPIO_Pin_12;
   dev001.humidity = 0;
   dev001.temparature = 0;
+  dev001.pointtemparature = 0;
   DHT11_init(&dev001, dev001.port, dev001.pin);
   GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
   uart1.delay=150; //modbus gap 9600
@@ -45,19 +49,7 @@ int main(void) {
   atSTART();
   oprosite();
 
-  if (RTC_Init() == 1) {
-      // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 21;
-      RTC_DateTime.RTC_Month = 7;
-      RTC_DateTime.RTC_Year = 2018;
 
-      RTC_DateTime.RTC_Hours = 14;
-      RTC_DateTime.RTC_Minutes = 8;
-      RTC_DateTime.RTC_Seconds = 30;
-      //После инициализации требуется задержка. Без нее время не устанавливается.
-      delay_ms(500);
-      RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
-    }
   iwdg_init();
 
   while (1) {
@@ -65,26 +57,23 @@ int main(void) {
           IWDG_ReloadCounter();
         }
       if(uart1.rxgap==1) {
-          //delay_ms(1);
-          //GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+
           GPIO_SetBits(USART1PPport, USART1PPpin);
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
           //delay_ms(1);
           GPIO_ResetBits(USART1PPport, USART1PPpin);
-          //GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
-          //USARTSend("\n\rREADY!!!\n\r");
-          //delay_ms(50);
+
         }
       if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
           RTC_Counter01 = RTC_Counter02;
           //read_Coils_RW();
           //setCOILS(Coils_RW);
-          ds18b20Value = schitatU16Temp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+          ds18b20Value = schitatU16Temp("\x28\xee\xe8\x19\x17\x16\x02\xa1");
           input_reg.tmp_u16[3] = ds18b20Value >> 4;                    //Number STM10DS001 "DS001Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:3]"}
           input_reg.tmp_float[9] = (float) (ds18b20Value / 16.0);     //Number STM10DS01f "DS01 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:1]"}
           hold_reg.tmp_float[1] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS001 "DS001Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:1"}
-          ds18b20Value = schitatU16Temp("\x28\xee\x09\x03\x1a\x16\x01\x67");
+          ds18b20Value = schitatU16Temp("\x28\xee\xe8\x19\x17\x16\x02\xa1");
           input_reg.tmp_u16[4] = ds18b20Value >> 4;                    //Number STM10DS002 "DS002Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:4]"}
           input_reg.tmp_float[10] = (float) (ds18b20Value / 16.0);     //Number STM10DS02f "DS02 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:2]"}
           hold_reg.tmp_float[2] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS002 "DS002Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:2"}
@@ -117,10 +106,6 @@ int main(void) {
           //Number STMfcountppRW "STM10countppRW [%.2f]"        (smt32modbus10RW)     {modbus=">[slave10_3:5]"}
           input_reg.tmp_float[12] = hold_reg.tmp_float[5];             //Number STM10countfPPro "countfPPro [%.1f]"     (smt32modbus10RO)     {modbus="<[slave10_402:4]"}
           input_reg.tmp_u16[11] = hold_reg.tmp_u16[27];                //Number STM10countPPRO  "ROcountPP [%d]"        (smt32modbus10RO)     {modbus="<[slave10_4:11]"}
-          //Number STMucountPP   "STM10fcountRWPP [%d]"         (smt32modbus10RW)     {modbus="slave10_302:2"}
-
-          //Number STMucountprov "STM10countRWprov [%d]"        (smt32modbus10RW)     {modbus="<[slave10_302:0], >[slave10_302:1]"}
-          //Number STMucountprov1 "STM10countRWprov1 [%d]"       (smt32modbus10RW)     {modbus="slave10_302:1"}
           hold_reg.tmp_u16[26] = hold_reg.tmp_u16[25];                 //prov2
           //hold_reg.tmp_u16[26] = (u16) hold_reg.tmp_u16[24] + 1;
           oprosite();
@@ -141,6 +126,7 @@ int main(void) {
             oprosite ();
             //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
             res_ftable[1] = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
+                                          \x28\xee\xe8\x19\x17\x16\x02\xa1
             res_ftable[2] = schitatfTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
             //res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
             res_table[3] = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
@@ -283,9 +269,9 @@ void atSTART(void) {
   coilFROMback(); //######################################## coilFROMback();coilFROMback();coilFROMback();
   Coils_RW[8] = 0;
   setCOILS(Coils_RW);
-  for(u8 i = 0; i < OBJ_SZ; i++) {
+  /*for(u8 i = 0; i < OBJ_SZ; i++) {
       input_reg.tmp_u32[i] = 0;
       hold_reg.tmp_u32[i] = 0;
-    }
+    }*/
 }
 

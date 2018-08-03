@@ -539,20 +539,7 @@ void TX_16(UART_DATA *MODBUS) {
   //n=7;
   if((((tmp+tmp1)<OBJ_SZ) && (tmp1<MODBUS_WRD_SZ+1)))    {
       hold_reg.tmp_u16[tmp] =((((uint16_t)MODBUS->buffer[7])<<8)+MODBUS->buffer[8]);
-      /* }
-  if((((tmp+tmp1)<OBJ_SZ*2) && (tmp1<MODBUS_WRD_SZ+1)))    {
-      for(m=0;m<tmp1;m++)   {
-          i = (m+tmp)/2;
 
-
-          MODBUS->buffer[n]=f001.tmp_val_u8[3];
-          MODBUS->buffer[n+1]=f001.tmp_val_u8[2];
-          MODBUS->buffer[n+2]=f001.tmp_val_u8[1];
-          MODBUS->buffer[n+3]=f001.tmp_val_u8[0];
-          f001.tmp_val_float=res_ftable[i+tmp];//пишем текущее значение
-          m++; // ############# Второй раз)))))))))))
-          n=n+4;
-        }*/
       MODBUS->txlen=8;
     } else {
       //illegal data

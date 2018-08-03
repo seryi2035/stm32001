@@ -561,6 +561,7 @@ int DHT11_init(struct DHT11_Dev* dev, GPIO_TypeDef* port, uint16_t pin) {
 uint16_t DHT11_read(struct DHT11_Dev* dev) {
   dev->temparature = 0;
   dev->humidity = 0;
+  dev->pointtemparature = 0;
   //Initialisation
   uint8_t i, j, temp;
   //uint8_t data[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
@@ -639,6 +640,7 @@ uint16_t DHT11_read(struct DHT11_Dev* dev) {
     return DHT11_ERROR_CHECKSUM;
   //set data
   dev->temparature = data[2];
+  dev->pointtemparature = data[3];
   dev->humidity = data[0];
   return DHT11_SUCCESS;
 }
