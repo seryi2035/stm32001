@@ -72,4 +72,7 @@ void wwdgenable(void);
 void WWDG_IRQHandler(void);
 void iwdg_init(void);
 
-
+uint16_t millisec2;
+uint32_t globalsecs;
+void SETglobalsecs(uint32_t count);
+uint32_t GETglobalsecs(void);

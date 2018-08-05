@@ -2,7 +2,7 @@
 #include "001.h"
 //#include "libmodbus.h"
 #include "modbus.h"
-//volatile uint8_t f_timer_2_end;
+
 //extern UART_DATA uart1;
 
 
@@ -29,49 +29,25 @@ void TIM2_init(void) {
 }
 void TIM2_IRQHandler(void) {
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)   {
+      millisec2++;
+      if (millisec2 >= 2000) {
+          globalsecs = GETglobalsecs();
+          globalsecs++;
+          SETglobalsecs(globalsecs);
+          millisec2 = 0;
+      }
       TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-      //TimeSec++;
-    }
-  /*extern volatile uint8_t f_timer_2_end;
-
-  TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  TIM2->SR &= ~TIM_SR_UIF;
-  f_timer_2_end = 1;
-
-  TIM_Cmd(TIM2, DISABLE);
-  TIM_ITConfig(TIM2, TIM_IT_Update, DISABLE);*/
+  }
 }
 void delay_us(uint32_t n_usec) {
   TIM4->CNT = 0;
   while (TIM4->CNT < n_usec);
-  /*f_timer_2_end = 0;
 
-  TIM2->PSC = 72 - 1;
-  TIM2->ARR = (uint16_t)( n_usec);
-  TIM_Cmd(TIM2, ENABLE);
-
-  // äëÿ òîãî ÷òîáû óñòàíîâèëñÿ PSC
-  TIM2->EGR |= TIM_EGR_UG;
-  TIM2->SR &= ~TIM_SR_UIF;
-
-  TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-  TIM_Cmd(TIM2, ENABLE);
-
-  while(f_timer_2_end == 0);*/
 }
 void delay_ms(uint32_t n_msec) {
   TIM2->CNT = 0;
   while (TIM2->CNT < (2 * n_msec)){}
-  /*f_timer_2_end = 0;
 
-  TIM2->PSC = 36000 - 1;
-  TIM2->ARR = (uint16_t)(2 * n_msec);
-  // äëÿ òîãî ÷òîáû óñòàíîâèëñÿ PSC
-  TIM2->EGR |= TIM_EGR_UG;
-  TIM2->SR &= ~TIM_SR_UIF;
-  TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-  TIM_Cmd(TIM2, ENABLE);
-  while(f_timer_2_end == 0);*/
 }
 
 void TIM4_init(void) {
@@ -133,11 +109,7 @@ void TIM3_IRQHandler(void) {
       TIM_ClearITPendingBit(TIM3, TIM_IT_Update);//очищаем прерывания
       //если наш таймер больше уставки задержки и есть символы то есть gap -перерыв в посылке
       //и можно ее обрабатывать
-      /*if (TIM3->CNT > 1000) {
-          uart1.rxtimer++;
-          TIM3->CNT = 0;
-        }
-*/
+
       uart1.rxtimer++;
       if((uart1.rxtimer > uart1.delay)&(uart1.rxcnt > 1)) {
           uart1.rxgap=1;

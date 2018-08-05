@@ -15,6 +15,8 @@
 
 void atSTART(void);
 struct DHT11_Dev dev001;
+void COILtimerMINUTES (uint8_t coilSETED, uint16_t inREGcount, uint16_t inREGbkp, uint16_t holdREGtimer, uint16_t holdREGbkp);
+
 
 int main(void) {
   uint32_t RTC_Counter01 = 0;
@@ -27,7 +29,7 @@ int main(void) {
   PWR_BackupAccessCmd(ENABLE);
 
   //uint16_t res003;
-  SET_PAR[0] = 20; //адрес этого устройства 10 (modbus) 1-247
+  SET_PAR[0] = 20; //адрес этого устройства 20 (modbus) 1-247
 
   GETonGPIO();
   TIM2_init(); // мс 0-49999 TIM2->CNT/2 25sec
@@ -61,28 +63,12 @@ int main(void) {
           GPIO_SetBits(USART1PPport, USART1PPpin);
           MODBUS_SLAVE(&uart1);
           net_tx1(&uart1);
-          //delay_ms(1);
+
           GPIO_ResetBits(USART1PPport, USART1PPpin);
 
         }
-      if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
+      if ( ((RTC_Counter02 = GETglobalsecs()) - RTC_Counter01) >= 4) {
           RTC_Counter01 = RTC_Counter02;
-          //read_Coils_RW();
-          //setCOILS(Coils_RW);
-          ds18b20Value = schitatU16Temp("\x28\xee\xe8\x19\x17\x16\x02\xa1");
-          input_reg.tmp_u16[3] = ds18b20Value >> 4;                    //Number STM10DS001 "DS001Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:3]"}
-          input_reg.tmp_float[9] = (float) (ds18b20Value / 16.0);     //Number STM10DS01f "DS01 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:1]"}
-          hold_reg.tmp_float[1] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS001 "DS001Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:1"}
-          ds18b20Value = schitatU16Temp("\x28\xee\xe8\x19\x17\x16\x02\xa1");
-          input_reg.tmp_u16[4] = ds18b20Value >> 4;                    //Number STM10DS002 "DS002Temperature [%d °C]"   (smt32modbus10RO)     {modbus="<[slave10_4:4]"}
-          input_reg.tmp_float[10] = (float) (ds18b20Value / 16.0);     //Number STM10DS02f "DS02 floatTemp [%.2f °C]"   (smt32modbus10RO)     {modbus="<[slave10_402:2]"}
-          hold_reg.tmp_float[2] = (float) (ds18b20Value / 16.0);           //Number STMfloatDS002 "DS002Temperature [%.2f °C]"   (smt32modbus10RW)     {modbus="slave10_3:2"}
-          input_reg.tmp_u16[2] = DHT11_read(&dev001);                  //Number STM10DHTres "DHTstatus [%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:2]"}
-          hold_reg.tmp_float[3] = (float) RTC_Counter01;                   //Number STMfloatcount "STM10countRW [%.2f]"          (smt32modbus10RW)     {modbus="<[slave10_3:3], >[slave10_3:4]"}
-          if (input_reg.tmp_u16[2] == DHT11_SUCCESS) {
-              input_reg.tmp_u16[0] = dev001.humidity;                  //Number STM10DHThum "humidity [%d %%]"          (smt32modbus10RO)     {modbus="<[slave10_4:0]"}
-              input_reg.tmp_u16[1] = dev001.temparature;               //Number STM10DHTtemp "DHTtemp [%d °C]"          (smt32modbus10RO)     {modbus="<[slave10_4:1]"}
-            }
           if ( (RTC_Counter02 - RTC_Counter03) >= 60) {
               n++;
               if (n > 6) {
@@ -94,175 +80,41 @@ int main(void) {
                 }
               hold_reg.tmp_u16[24] = hold_reg.tmp_u16[24] + 1;
               RTC_Counter03 = RTC_Counter02;
-              RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
-              input_reg.tmp_u16[5] = RTC_DateTime.RTC_Hours;          //Number STM10hour   "hour [%d]"                 (smt32modbus10RO)     {modbus="<[slave10_4:5]"}
-              input_reg.tmp_u16[6] = RTC_DateTime.RTC_Minutes;        //Number STM10minute   "minute [:%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:6]"}
-              input_reg.tmp_u16[7] = RTC_DateTime.RTC_Seconds;        //Number STM10second  "seconds [:%d]"            (smt32modbus10RO)     {modbus="<[slave10_4:7]"}
-              input_reg.tmp_u16[8] = RTC_DateTime.RTC_Year;           //Number STM10year  "year [%d]"                  (smt32modbus10RO)     {modbus="<[slave10_4:8]"}
-              input_reg.tmp_u16[9] = RTC_DateTime.RTC_Month;          //Number STM10month  "month [%d]"                (smt32modbus10RO)     {modbus="<[slave10_4:9]"}
-              input_reg.tmp_u16[10] = RTC_DateTime.RTC_Date;          //Number STM10date  "date [%d]"                  (smt32modbus10RO)     {modbus="<[slave10_4:10]"}
+              input_reg.tmp_u16[2] = (RTC_Counter02 / 3600) % 24;   //Number STM20hour   "hour [%d]"                 (gmod20_INreg)     {modbus="<[slave20_4:2]"}
+              input_reg.tmp_u16[1] = (RTC_Counter02 / 60) % 60;     //Number STM20minute   "minute [:%d]"            (gmod20_INreg)     {modbus="<[slave20_4:1]"}
+              input_reg.tmp_u16[0] = RTC_Counter02 % 60;            //Number STM20second  "seconds [:%d]"            (gmod20_INreg)     {modbus="<[slave20_4:0]"}
+              input_reg.tmp_u16[3] = (RTC_Counter02 / (3600 * 24)); //Number STM20date  "date [%d]"                  (gmod20_INreg)     {modbus="<[slave20_4:3]"}
+              COILtimerMINUTES(Coils_RW[1], input_reg.tmp_u16[12], BKP_DR5, hold_reg.tmp_u16[28], BKP_DR9);   //B11     slave20_403:4       slave20_302:4
+              COILtimerMINUTES(Coils_RW[2], input_reg.tmp_u16[13], BKP_DR6, hold_reg.tmp_u16[29], BKP_DR10);  //B10     slave20_403:5       slave20_302:5
+              COILtimerMINUTES(Coils_RW[3], input_reg.tmp_u16[14], BKP_DR7, hold_reg.tmp_u16[30], BKP_DR11);  //B1      slave20_403:6       slave20_302:6
+              COILtimerMINUTES(Coils_RW[4], input_reg.tmp_u16[15], BKP_DR8, hold_reg.tmp_u16[31], BKP_DR12);  //B0      slave20_403:7       slave20_302:7
             }
-          input_reg.tmp_float[11] = (float) RTC_Counter01;             //Number STM10count "count [%.1f ]"              (smt32modbus10RO)     {modbus="<[slave10_402:3]"}
-          //Number STMfcountppRW "STM10countppRW [%.2f]"        (smt32modbus10RW)     {modbus=">[slave10_3:5]"}
-          input_reg.tmp_float[12] = hold_reg.tmp_float[5];             //Number STM10countfPPro "countfPPro [%.1f]"     (smt32modbus10RO)     {modbus="<[slave10_402:4]"}
-          input_reg.tmp_u16[11] = hold_reg.tmp_u16[27];                //Number STM10countPPRO  "ROcountPP [%d]"        (smt32modbus10RO)     {modbus="<[slave10_4:11]"}
-          hold_reg.tmp_u16[26] = hold_reg.tmp_u16[25];                 //prov2
-          //hold_reg.tmp_u16[26] = (u16) hold_reg.tmp_u16[24] + 1;
+          ds18b20Value = schitatU16Temp("\x28\xee\xe8\x19\x17\x16\x02\xa1");
+          input_reg.tmp_float[9] = (float) (ds18b20Value / 16.0);   //Number STM20DS03f "DS01 floatTemp [%.2f °C]"   (gmod20_INreg)     {modbus="<[slave20_402:1]"}
+          input_reg.tmp_u16[4] = DHT11_read(&dev001);               //Number STM20DHTres "DHTstatus [%d]"            (gmod20_INreg)     {modbus="<[slave20_4:4]"}
+          if (input_reg.tmp_u16[4] == DHT11_SUCCESS) {
+              input_reg.tmp_u16[5] = dev001.humidity;               //Number STM20DHThum "humidity [%d %%]"          (gmod20_INreg)     {modbus="<[slave20_4:5]"}
+              input_reg.tmp_float[8] = ((float)dev001.temparature + (0.1 * dev001.pointtemparature) );
+                                                                    //Number STM20DHTtemp "DHTtemp [%.1f °C]"  (gmod20_INreg)     {modbus="<[slave20_402:0]"}
+            }
+          input_reg.tmp_u16[11] = hold_reg.tmp_u16[27];             //Number STM20countPPRO  "ROcountPP [%d]"        (gmod20_INreg)     {modbus="<[slave20_4:11]"}
+          hold_reg.tmp_u16[26] = hold_reg.tmp_u16[25];              //prov2
+          input_reg.tmp_float[11] = (float) RTC_Counter01;          //Number STM20count "count [%.1f ]"              (gmod20_INreg)     {modbus="<[slave20_402:3]"}
+
           oprosite();
           if (Coils_RW[9] != 0) {
               if (input_reg.tmp_i16[11] > 0) {
-                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[11]);
+                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[7]);
                 } else {
                   input_reg.tmp_i16[11] = input_reg.tmp_i16[11] * (-1);
-                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[11]);
+                  RTC_Counter02 = RTC_Counter02 + ((uint32_t)input_reg.tmp_i16[7]);
                 }
-              RTC_SetCounter(RTC_Counter02);
+              SETglobalsecs(RTC_Counter02);
               //res_ftable[5] = 0;
               Coils_RW[9] = 0;
             }
         }
-      /*if ( ((RTC_Counter02 = RTC_GetCounter()) - RTC_Counter01) >= 4) {
-            RTC_Counter01 = RTC_Counter02;
-            oprosite ();
-            //res_ftable[1] = schitatfTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-            res_ftable[1] = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-                                          \x28\xee\xe8\x19\x17\x16\x02\xa1
-            res_ftable[2] = schitatfTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-            //res_table[3] = schitatiTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-            res_table[3] = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-            res_table[4] = schitatiTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-            fResult = res_ftable[1];
-            sprintf(buffer, "T01F %d.%d  ",(int) fResult, (int) (0.0625*1000)*(((int) (fResult * 16)) % 16));
-            USARTSend(buffer);
-            USARTSend(buffer);
-            fResult = res_ftable[2];
-            sprintf(buffer, "T02F %d.%d  ",(int) fResult, (int) (0.0625*1000)*(((int) (fResult * 16)) % 16));
-            USARTSend(buffer);
-            sprintf(buffer, "T01 :%d  ", res_table[3]);
-            USARTSend(buffer);
-            sprintf(buffer, "T02 :%d  ", res_table[4]);
-            USARTSend(buffer);
-            res003 = DHT11_read(&dev001);
-            delay_ms(1);
-            sprintf(buffer, "res :%d  ", res003);
-            USARTSend(buffer);
-            //USARTSend(buffer);
-            sprintf(buffer, "temp :%d  ", dev001.temparature);
-            USARTSend(buffer);
-            sprintf(buffer, "hum :%d \n \n", dev001.humidity);
-            USARTSend(buffer);
-            RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
-            sprintf(buffer, " %d:%d:%d\r\n",
-
-                    (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-            USARTSend(buffer);
-            sprintf(buffer, "rxtimer:%d  rxcnt:%d  txcnt:%d  txlen:%d  rxgap:%d  delay:%d\r\n",
-                    uart1.rxtimer, uart1.rxcnt, uart1.txcnt,
-                uart1.txlen, uart1.rxgap, uart1.delay);
-            USARTSend(buffer);
-            for(u8 i001 = 0; i001 < 40;i001++) {
-                vvhex(uart1.buffer[i001]);
-                if (i001 > 3 && (i001 +1) % 8 == 0) {USARTSend("\n"); } else { USARTSend(" ");}
-                //USARTSend(" ");
-                //buffer[i001] = uart1.buffer[i001];
-              }
-            //USARTSend(buffer);
-            USARTSend(" end \n");
-          }*/
-      /* if (RX_FLAG_END_LINE == 1) {
-          // Reset RX_Flag end line
-          RX_FLAG_END_LINE = 0;
-
-          USARTSend("\n\rI has received a line:\n\r");
-          USARTSend(RX_BUF);
-          USARTSend("\n\r");
-
-          if (strncmp(RX_BUF, "ON\r", 3) == 0 || strncmp(RX_BUF, "on\r", 3) == 0) {
-              USARTSend("\n\r THIS IS A COMMAND \"ON\"!!!\n\r");
-              delay_ms(100);
-              GPIO_ResetBits(GPIOC, GPIO_Pin_13); //ON
-            }
-          if (strncmp(RX_BUF, "OFF\r", 4) == 0 || strncmp(RX_BUF, "off\r", 4) == 0) {
-              USARTSend("\n\rTHIS IS A COMMAND \"OFF\"!!!\n\r");
-              delay_ms(100);
-              GPIO_SetBits(GPIOC, GPIO_Pin_13); //OFF
-            }
-          if (strncmp(RX_BUF, "T\r", 1) == 0 || strncmp(RX_BUF, "t\r", 4) == 0) {
-              RTC_Counter01 = RTC_GetCounter();
-              sprintf(buffer, "COUNTER: %d\r\n", (int)RTC_Counter01);
-              USARTSend(buffer);
-              RTC_GetDateTime(RTC_Counter01, &RTC_DateTime);
-              sprintf(buffer, "%d.%d.%d  %d:%d:%d\r\n",
-                      (int)RTC_DateTime.RTC_Date, (int)RTC_DateTime.RTC_Month, (int)RTC_DateTime.RTC_Year,
-                      (int)RTC_DateTime.RTC_Hours, (int)RTC_DateTime.RTC_Minutes, (int)RTC_DateTime.RTC_Seconds);
-              USARTSend(buffer);
-
-              // Функция генерирует в буфере дату собственного формата
-              RTC_GetMyFormat(&RTC_DateTime, buffer);
-              USARTSend(buffer);
-              USARTSend("\n\r");
-
-            }
-          if (strncmp(RX_BUF, "SCAN\r", 4) == 0 || strncmp(RX_BUF, "scan\r", 4) == 0 ) {
-              for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF08[i] = (u8) RX_BUF[i];
-              OW_Scan(RX_BUF08, 1);
-              for(int i = 0;i < RX_BUF_SIZE - 1; i++) RX_BUF[i] = (char) RX_BUF08[i];
-              //char cifry[10];
-              sendaddrow();
-            }
-          if (strncmp(RX_BUF, "0\r", 4) == 0) {
-              schitatTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-              //schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-              //iResult = schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-              sprintf(cifry, "int %d\r\n", schitatiTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30"));
-              USARTSend(cifry);
-              fResult = schitatfTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-              sprintf(cifry, "float %d.%d\r\n",(int) fResult, (int) (0.0625*1000)*(((int) (fResult * 16)) % 16));
-              USARTSend(cifry);
-            }
-          if (strncmp(RX_BUF, "1\r", 4) == 0) {
-              schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-            }
-          if (strncmp(RX_BUF, "5\r", 4) == 0) {
-              oprosite ();
-              USARTSend("oprosheno\n\r");
-            }
-          if(strncmp(RX_BUF, "2\r", 4) == 0) {
-              delay_ms(100);
-              schitatTemp("\x28\xee\x6c\x08\x1a\x16\x01\x30");
-              //schitatTemp("\x28\xee\xcd\xa9\x19\x16\x01\x0c");
-              delay_ms(100);
-              schitatTemp("\x28\xee\x09\x03\x1a\x16\x01\x67");
-              delay_ms(100);
-            }
-          if (strncmp(RX_BUF, "9\r", 4) == 0) {
-              GPIO_WriteBit(GPIOC,GPIO_Pin_13,Bit_RESET);
-            }
-          if (strncmp(RX_BUF, "8\r", 4) == 0) {
-              GPIO_WriteBit(GPIOC,GPIO_Pin_13,Bit_SET);
-            }
-          if (strncmp(RX_BUF, "7\r", 4) == 0) {
-              sprintf(buffer, "\r\n\r\nint %d. float %d. double %d u8 %d u16 %d u32 %d\r\n\r",
-                      (int)sizeof(int), (int)sizeof(float), (int)sizeof(double),
-                      (int)sizeof(u8), (int)sizeof(u16), (int)sizeof(u32));
-              USARTSend(buffer);
-            }
-          if (strncmp(RX_BUF, "6\r", 4) == 0) {
-              int res003 = DHT11_read(&dev001);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", res003);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.temparature);
-              USARTSend(cifry);
-              delay_ms(100);
-              sprintf(cifry, "%d\r\n", dev001.humidity);
-              USARTSend(cifry);
-              delay_ms(100);
-            }
-          clear_RXBuffer();
-        }*/
-    }
+  }
 }
 
 void atSTART(void) {
@@ -273,5 +125,23 @@ void atSTART(void) {
       input_reg.tmp_u32[i] = 0;
       hold_reg.tmp_u32[i] = 0;
     }*/
+  hold_reg.tmp_u16[28] = BKP_ReadBackupRegister(BKP_DR9);
+  hold_reg.tmp_u16[29] = BKP_ReadBackupRegister(BKP_DR10);
+  hold_reg.tmp_u16[30] = BKP_ReadBackupRegister(BKP_DR11);
+  hold_reg.tmp_u16[31] = BKP_ReadBackupRegister(BKP_DR12);
 }
 
+void COILtimerMINUTES (uint8_t coilSETED, uint16_t inREGcount,uint16_t inREGbkp, uint16_t holdREGtimer ,uint16_t holdREGbkp) {
+    inREGcount = BKP_ReadBackupRegister(inREGbkp);
+
+    if ( coilSETED != 0) {
+        inREGcount--;
+    } else {
+        inREGcount = holdREGtimer;
+    }
+    if (inREGcount < 1) {
+        coilSETED = 0;
+    }
+    BKP_WriteBackupRegister(inREGbkp, inREGcount);
+    BKP_WriteBackupRegister(holdREGbkp, holdREGtimer);
+}
