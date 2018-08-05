@@ -95,7 +95,7 @@ int main(void) {
           if (input_reg.tmp_u16[4] == DHT11_SUCCESS) {
               input_reg.tmp_u16[5] = dev001.humidity;               //Number STM20DHThum "humidity [%d %%]"          (gmod20_INreg)     {modbus="<[slave20_4:5]"}
               input_reg.tmp_float[8] = ((float)dev001.temparature + (0.1 * dev001.pointtemparature) );
-                                                                    //Number STM20DHTtemp "DHTtemp [%.1f °C]"  (gmod20_INreg)     {modbus="<[slave20_402:0]"}
+              //Number STM20DHTtemp "DHTtemp [%.1f °C]"  (gmod20_INreg)     {modbus="<[slave20_402:0]"}
             }
           input_reg.tmp_u16[11] = hold_reg.tmp_u16[27];             //Number STM20countPPRO  "ROcountPP [%d]"        (gmod20_INreg)     {modbus="<[slave20_4:11]"}
           hold_reg.tmp_u16[26] = hold_reg.tmp_u16[25];              //prov2
@@ -114,7 +114,7 @@ int main(void) {
               Coils_RW[9] = 0;
             }
         }
-  }
+    }
 }
 
 void atSTART(void) {
@@ -132,16 +132,16 @@ void atSTART(void) {
 }
 
 void COILtimerMINUTES (uint8_t coilSETED, uint16_t inREGcount,uint16_t inREGbkp, uint16_t holdREGtimer ,uint16_t holdREGbkp) {
-    inREGcount = BKP_ReadBackupRegister(inREGbkp);
+  inREGcount = BKP_ReadBackupRegister(inREGbkp);
 
-    if ( coilSETED != 0) {
-        inREGcount--;
+  if ( coilSETED != 0) {
+      inREGcount--;
     } else {
-        inREGcount = holdREGtimer;
+      inREGcount = holdREGtimer;
     }
-    if (inREGcount < 1) {
-        coilSETED = 0;
+  if (inREGcount < 1) {
+      coilSETED = 0;
     }
-    BKP_WriteBackupRegister(inREGbkp, inREGcount);
-    BKP_WriteBackupRegister(holdREGbkp, holdREGtimer);
+  BKP_WriteBackupRegister(inREGbkp, inREGcount);
+  BKP_WriteBackupRegister(holdREGbkp, holdREGtimer);
 }
