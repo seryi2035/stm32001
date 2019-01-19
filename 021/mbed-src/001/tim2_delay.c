@@ -28,16 +28,10 @@ void TIM2_init(void) {
   TIM_SelectOnePulseMode(TIM2, TIM_OPMode_Single);
 }
 void TIM2_IRQHandler(void) {
+
   if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)   {
-      millisec2++;
-      if (millisec2 >= 2000) {
-          globalsecs = GETglobalsecs();
-          globalsecs++;
-          SETglobalsecs(globalsecs);
-          millisec2 = 0;
-      }
       TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-  }
+    }
 }
 void delay_us(uint32_t n_usec) {
   TIM4->CNT = 0;
@@ -116,6 +110,13 @@ void TIM3_IRQHandler(void) {
         }
       else {
           uart1.rxgap=0;
+        }
+      millisec2++;
+      if (millisec2 >= 1000) {
+          globalsecs = GETglobalsecs();
+          globalsecs++;
+          SETglobalsecs(globalsecs);
+          millisec2 = 0;
         }
     }
 }

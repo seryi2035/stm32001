@@ -693,5 +693,6 @@ void SETglobalsecs(uint32_t count) {
     BKP_WriteBackupRegister(BKP_DR4, ((uint16_t) count));
 }
 uint32_t GETglobalsecs(void) {
-    return (((uint32_t) BKP_ReadBackupRegister(BKP_DR3) << 16) + ((uint32_t) BKP_ReadBackupRegister(BKP_DR4)));
+  u32 a = ((uint32_t) BKP_ReadBackupRegister(BKP_DR3) << 16) + ((uint32_t) BKP_ReadBackupRegister(BKP_DR4));
+    return (a);
 }

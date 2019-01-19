@@ -23,6 +23,7 @@ int main(void) {
   uint32_t RTC_Counter02 = 0;
   uint32_t RTC_Counter03 = 0;
   u8 n = 0;
+  millisec2 = 0;
   // Включить тактирование модулей управления питанием и управлением резервной областью
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
   // Разрешить доступ к области резервных данных
@@ -43,18 +44,19 @@ int main(void) {
   dev001.temparature = 0;
   dev001.pointtemparature = 0;
   DHT11_init(&dev001, dev001.port, dev001.pin);
-  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
-  uart1.delay=150; //modbus gap 9600
+
+  uart1.delay=80; //modbus gap 9600
   uart1.rxtimer = 0;
-  delay_ms(1000);
-  GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
+
   atSTART();
   oprosite();
-
-
+  GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
+  delay_ms(1000);
+  GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
   iwdg_init();
 
   while (1) {
+
       if (Coils_RW[8] == 0) {
           IWDG_ReloadCounter();
         }
@@ -62,7 +64,7 @@ int main(void) {
 
           GPIO_SetBits(USART1PPport, USART1PPpin);
           MODBUS_SLAVE(&uart1);
-          net_tx1(&uart1);
+          //net_tx1(&uart1);
 
           GPIO_ResetBits(USART1PPport, USART1PPpin);
 
