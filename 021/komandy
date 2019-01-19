@@ -105,3 +105,136 @@ git checkout -b serverfix origin/serverfix
 git checkout --track origin/startmodbusTRY
 ########### переключение пуш(уемой) ветки
 git push --set-upstream origin delete_tresh
+
+
+
+
+
+
+
+
+######################
+605  git
+  606  nano /etc/gitconfig
+  607  git config --list
+  608  git remote
+  611  git config --list
+  612  git config --global user.name "seryi2035"
+  613  git config --list
+  614  git config --global user.email seryi2035@mail.ru
+  615  git config --list
+  616  nano ~/.gitconfig
+  617  cd /home/seryi/003/git/stm32001
+  618  git init 
+  619  git add
+  620  git 021
+  621  git -
+  622  git config --list
+  623  nano ~/.gitconfig
+  624  git add
+  625  git -h
+  626  git status 
+  627  git add
+  628  git commit 
+  629  git status 
+  630  git commit 
+  631  git status 
+  632  git commit 
+  633  git status 
+  634  git commit -h
+  635  git commit -v
+  636  git commit -a
+  637  git status 
+  638  git add -h
+  639  git add -A
+  640  git status 
+  641  git commit
+  642  git config --list
+  643  git log
+  644  git log -p -1
+  645  gitk
+  646  git remote
+  647  git remote add origin https://github.com/seryi2035/stm32001.git
+  648  git status 
+  649  git remote
+  650  git push -u origin master
+  651  git status 
+  652  git add -A
+  653  git commit -m 'dobavlen fail komandy'
+  654  git status 
+  655  git push
+  656  git status 
+  657  git commit -a
+  658  git commit -a -m 'komandy c github'
+  659  git push
+  660  touch .gitignore
+  661  nano .gitignore
+  662  git status 
+  663  git commit -a -m 'dobavlen gitignore'
+  664  git status 
+  665  git add -A
+  666  git status 
+  667  git commit -a -m 'dobavlen gitignore'
+  668  git status 
+  669  git commit -a -m 'dobavlen gitignore'
+  670  git status 
+  671  git push
+  672  git status 
+  673  git add -A
+  674  git status 
+  675  git commit -m 'pered clone v serv'
+  676  git push
+  677  git status 
+  678  git pull
+  679  git log
+  680  git push
+  681  git status 
+  682  git commit -a -m 'zakryl noutbook'
+  683  git push
+  685  cd ~/kodim/git/stm32001/stm32001
+  686  cd ~/kodim/git/stm32001/stm32001/
+  687  cd ~/003/git/stm32001
+  688  git status 
+  689  git commit -a -m 'dobavil puti'
+  690  git push
+  691  git help config
+  692  git -v
+  693  git config credential.helper store
+  694  git commit -a -m 'proverka avtoparolya'
+  695  git push
+  696  git commit -a -m 'proverka avtoparolya2'
+  697  git push
+  698  git commit -a -m 'proverka avtoparolya3'
+  699  git push
+  729  cd ~/003/git/stm32001
+  730  git status 
+  731  git commit -a -m 'выпилил юсарт3'
+  732  git commit -a -m 'fix usart1send485'
+  733  git push
+  734  git status 
+  735  git commit -a -m 'осталось сделать таблицы регистров'
+  736  git commit -a -m 'осталось сделать таблицы регистров02'
+  737  git push
+  738  git pull
+  739  git commit -a -m 'modbus молчит('
+  740  git status 
+  741  git ;og -2
+  742  git log -2
+  743  git push
+  744  git status 
+  745  git commit -a -m 'modbus молчит(02'
+  746  git push
+  747  git pull
+  748  git log -2
+  749  git status 
+  750  git commit -a -m 'modbus молчит(03'
+  751  git status 
+  752  git commit -a -m 'modbus молчит но буфер пишет'
+  753  git commit -a -m 'TIM3 ожил)'
+  754  git status 
+  755  git commit -a -m 'mbpoll глючит?'
+  787  cd ~/003/git/stm32001
+  788  git branch 
+  789  git branch  startmodbusTRY 
+  790  git branch 
+###########################################################
