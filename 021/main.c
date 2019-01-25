@@ -40,6 +40,7 @@ int main(void) {
   GPIO_SetBits(GPIOC, GPIO_Pin_13);     // C13 -- 1 GDN set!
   uart1.delay=150; //modbus gap 9600
   uart1.rxtimer = 0;
+  GPIO_ResetBits(GPIOC, GPIO_Pin_13);
   delay_ms(1000);
   GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
   atSTART();
@@ -47,13 +48,13 @@ int main(void) {
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
-      RTC_DateTime.RTC_Date = 21;
-      RTC_DateTime.RTC_Month = 7;
-      RTC_DateTime.RTC_Year = 2018;
+      RTC_DateTime.RTC_Date = 26;
+      RTC_DateTime.RTC_Month = 1;
+      RTC_DateTime.RTC_Year = 2019;
 
-      RTC_DateTime.RTC_Hours = 14;
-      RTC_DateTime.RTC_Minutes = 8;
-      RTC_DateTime.RTC_Seconds = 30;
+      RTC_DateTime.RTC_Hours = 0;
+      RTC_DateTime.RTC_Minutes = 0;
+      RTC_DateTime.RTC_Seconds = 51;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
