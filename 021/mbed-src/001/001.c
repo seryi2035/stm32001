@@ -211,15 +211,19 @@ unsigned char RTC_Init(void) {
   if((RCC->BDCR & RCC_BDCR_RTCEN) != RCC_BDCR_RTCEN) {
       NVIC_InitTypeDef NVIC_InitStructure;
 
+              RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
+
+              // Allow access to BKP Domain
+              PWR_BackupAccessCmd(ENABLE);
 
               // Reset Backup Domain
               BKP_DeInit();
 
               // Enable the LSE OSC
-        RCC_LSEConfig(RCC_LSE_ON);
+      //	RCC_LSEConfig(RCC_LSE_ON);
 
               // Disable the LSI OSC
-              //RCC_LSICmd(ENABLE);
+              RCC_LSICmd(ENABLE);
 
               // Select the RTC Clock Source
               RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI); //RCC_RTCCLKSource_LSE);

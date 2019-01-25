@@ -44,7 +44,7 @@ int main(void) {
   delay_ms(1000);
   GPIO_ResetBits(GPIOC, GPIO_Pin_13);   // C13 -- 0 VCC
   atSTART();
-  oprosite();
+  //oprosite();
 
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
@@ -52,12 +52,13 @@ int main(void) {
       RTC_DateTime.RTC_Month = 1;
       RTC_DateTime.RTC_Year = 2019;
 
-      RTC_DateTime.RTC_Hours = 0;
-      RTC_DateTime.RTC_Minutes = 0;
+      RTC_DateTime.RTC_Hours = 2;
+      RTC_DateTime.RTC_Minutes = 2;
       RTC_DateTime.RTC_Seconds = 51;
       //После инициализации требуется задержка. Без нее время не устанавливается.
-      delay_ms(500);
+      delay_ms(2000);
       RTC_SetCounter(RTC_GetRTC_Counter(&RTC_DateTime));
+      delay_ms(2000);
     }
   iwdg_init();
 
