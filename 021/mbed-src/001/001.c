@@ -667,6 +667,7 @@ uint16_t DHT11_read(struct DHT11_Dev* dev) {
     return DHT11_ERROR_CHECKSUM;
   //set data
   dev->temparature = data[2];
+  dev->pointtemparature = data[3];
   dev->humidity = data[0];
   return DHT11_SUCCESS;
 }
@@ -711,3 +712,44 @@ void iwdg_init(void) {
   IWDG_Enable();
 }
 
+void RTCInit(void) {
+  NVIC_InitTypeDef NVIC_InitStructure;
+
+
+
+  // Reset Backup Domain
+  BKP_DeInit();
+
+  // Enable the LSE OSC
+  //	RCC_LSEConfig(RCC_LSE_ON);
+
+  // Disable the LSI OSC
+  RCC_LSICmd(ENABLE);
+
+  // Select the RTC Clock Source
+  RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI); //RCC_RTCCLKSource_LSE);
+
+  // Enable the RTC Clock
+  RCC_RTCCLKCmd(ENABLE);
+
+  // Wait for RTC registers synchronization
+  RTC_WaitForSynchro();
+
+  // Wait until last write operation on RTC registers has finished
+  RTC_WaitForLastTask();
+
+  // Enable the RTC overflow interrupt
+  RTC_ITConfig(RTC_IT_SEC, ENABLE);
+
+  //Set 32768 prescaler - for one second interupt
+  RTC_SetPrescaler(0x7FFF);
+
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+
+  NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+
+}

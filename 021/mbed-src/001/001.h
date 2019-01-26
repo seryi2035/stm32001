@@ -60,6 +60,7 @@ void oprosite (void);
 #define DHT11_ERROR_TIMEOUT   3
 typedef struct DHT11_Dev {
   uint8_t temparature;
+  uint8_t pointtemparature;
   uint8_t humidity;
   GPIO_TypeDef* port;
   uint16_t pin;
@@ -71,4 +72,4 @@ void wwdgenable(void);
 void WWDG_IRQHandler(void);
 void iwdg_init(void);
 
-
+void RTCInit(void);
