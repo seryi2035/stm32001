@@ -52,11 +52,11 @@ int main(void)
   if (RTC_Init() == 1) {
       // Если первая инициализация RTC устанавливаем начальную дату, например 22.09.2016 14:30:00
       RTC_DateTime.RTC_Date = 6;
-      RTC_DateTime.RTC_Month = 7;
-      RTC_DateTime.RTC_Year = 2018;
+      RTC_DateTime.RTC_Month = 12;
+      RTC_DateTime.RTC_Year = 2019;
 
-      RTC_DateTime.RTC_Hours = 18;
-      RTC_DateTime.RTC_Minutes = 49;
+      RTC_DateTime.RTC_Hours = 7;
+      RTC_DateTime.RTC_Minutes = 57;
       RTC_DateTime.RTC_Seconds = 30;
       //После инициализации требуется задержка. Без нее время не устанавливается.
       delay_ms(500);

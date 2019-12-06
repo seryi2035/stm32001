@@ -457,6 +457,17 @@ unsigned int sonar_get() {
   return (unsigned int)Sonar;
 }
 
+#define _TBIAS_DAYS		((70 * (u32)365) + 17)
+#define _TBIAS_SECS		(_TBIAS_DAYS * (uint32_t)86400)
+#define	_TBIAS_YEAR		1900
+#define MONTAB(year)		((((year) & 03) || ((year) == 0)) ? mos : lmos)
+
+const u16	lmos[] = {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
+const u16	mos[] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+
+#define	Daysto32(year, mon)	(((year - 1) / 4) + MONTAB(year)[mon])
+
+
 unsigned char RTC_Init(void) {
   // Включить тактирование модулей управления питанием и управлением резервной областью
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR | RCC_APB1Periph_BKP, ENABLE);
@@ -535,29 +546,28 @@ void RTC_GetDateTime(uint32_t RTC_Counter, RTC_DateTimeTypeDef* RTC_DateTimeStru
 }
 // Convert Date to Counter
 uint32_t RTC_GetRTC_Counter(RTC_DateTimeTypeDef* RTC_DateTimeStruct) {
-  uint32_t a;
-  uint32_t y;
-  uint32_t m;
-  uint32_t JDN;
+        /* convert time structure to scalar time */
+  s32		days;
+  uint32_t		secs;
+  s32		mon, year;
 
-  a =(uint32_t) ( (14 - RTC_DateTimeStruct->RTC_Month) / 12);
-  y =(uint32_t) ( RTC_DateTimeStruct->RTC_Year + 4800 - (u8)a);
-  m =(uint32_t) ( RTC_DateTimeStruct->RTC_Month + (12 * a) - 3);
+          /* Calculate number of days. */
+          mon = RTC_DateTimeStruct->RTC_Month - 1;
+          year = RTC_DateTimeStruct->RTC_Year - _TBIAS_YEAR;
+          days  = Daysto32(year, mon) - 1;
+          days += 365 * year;
+          days += RTC_DateTimeStruct->RTC_Date;
+          days -= _TBIAS_DAYS;
 
-  JDN = RTC_DateTimeStruct->RTC_Date;
-  JDN += (153 * m + 2) / 5;
-  JDN += 365 * y;
-  JDN += y / 4;
-  JDN += -y / 100;
-  JDN += y / 400;
-  JDN = JDN - 32045;
-  JDN = JDN - JULIAN_DATE_BASE;
-  JDN *= 86400;
-  JDN +=(uint32_t) (RTC_DateTimeStruct->RTC_Hours * 3600);
-  JDN +=(uint32_t) (RTC_DateTimeStruct->RTC_Minutes * 60);
-  JDN +=(uint32_t) (RTC_DateTimeStruct->RTC_Seconds);
+          /* Calculate number of seconds. */
+          secs  = 3600 * RTC_DateTimeStruct->RTC_Hours;
+          secs += 60 * RTC_DateTimeStruct->RTC_Minutes;
+          secs += RTC_DateTimeStruct->RTC_Seconds;
 
-  return JDN;
+          secs += (days * (uint32_t)86400);
+
+          return (secs);
+
 }
 
 void RTC_GetMyFormat(RTC_DateTimeTypeDef* RTC_DateTimeStruct, char *  buffer01) {
